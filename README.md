@@ -51,10 +51,24 @@ bash run_all.sh --model llama3 --bin_strategy uniform
 ### Step by step
 ```bash
 # 1. Baseline — sample each question N times, compute uncertainty + entropy
-bash run_baseline.sh --model GPT5_4Nano --n_attempts 10 --n_per_cat 30 --seed 42 --max_concurrent 10 --n_bins 5 --bin_strategy quantile
+bash run_baseline.sh \
+    --model GPT5_4Nano \
+    --n_attempts 10 \
+    --n_per_cat 30 \
+    --seed 42 \
+    --max_concurrent 10 \
+    --n_bins 5 \
+    --bin_strategy quantile
 
 # 2. Sycophancy — run pressure experiment per entropy bin
-bash run_sycophancy.sh --model GPT5_4Nano --n_syco_samples 5 --concurrency 5 --timeout_s 120 --base_seed 777 --n_bins 5 --bin_strategy quantile
+bash run_sycophancy.sh \
+    --model GPT5_4Nano \
+    --n_syco_samples 5 \
+    --concurrency 5 \
+    --timeout_s 120 \
+    --base_seed 777 \
+    --n_bins 5 \
+    --bin_strategy quantile
 
 # 3. Package results
 bash package_results.sh --model GPT5_4Nano

@@ -37,29 +37,25 @@ def bin_items_by_entropy(
     n_bins: int = DEFAULT_N_BINS,
     strategy: str = DEFAULT_BIN_STRATEGY,
 ) -> Tuple[dict, KBinsDiscretizer]:
-    """
-    Fits a KBinsDiscretizer on per-item entropy values, assigns each item to a bin,
-    prints a summary table, and returns (bins_dict, fitted_binner).
 
-    bins_dict: {bin_idx (int): [list of item dicts]}
-    """
-    patch_entropy(experiment_metadata_l)
+    for item in experiment_metadata_l:
+        if "entropy" not in item:
+            item["entropy"] = compute_entropy(item["answers_generated"])
 
     entropies = np.array(
         [item["entropy"] for item in experiment_metadata_l]
     ).reshape(-1, 1)
 
     binner = KBinsDiscretizer(n_bins=n_bins, encode="ordinal", strategy=strategy)
-    binner.fit(entropies)
-    bin_indices = binner.transform(entropies).flatten().astype(int)
+    bin_ids = binner.fit_transform(entropies).astype(int).ravel()
+    actual_n_bins = len(binner.bin_edges_[0]) - 1  # may be < n_bins after sklearn prunes
 
-    bins: dict = {i: [] for i in range(n_bins)}
-    for item, bin_idx in zip(experiment_metadata_l, bin_indices):
-        bins[bin_idx].append(item)
+    bins = {i: [] for i in range(actual_n_bins)}
+    for item, bin_id in zip(experiment_metadata_l, bin_ids):
+        bins[int(bin_id)].append(item)
 
-    _print_bin_summary(bins, binner, n_bins)
+    _print_bin_summary(bins, binner, actual_n_bins)  # was: n_bins
     return bins, binner
-
 
 def _print_bin_summary(
     bins: dict,
@@ -114,10 +110,10 @@ def bin_by_entropy(
         bin_results[bin_indices[idx]].append(rec["correct"])
 
     edges = binner.bin_edges_[0]
-    print(f"\n{'Entropy Bin Range':<25} | {'Samples':<10} | {'Accuracy'}")
-    print("-" * 52)
+    # print(f"\n{'Entropy Bin Range':<25} | {'Samples':<10} | {'Accuracy'}")
+    # print("-" * 52)
     for i in range(n_bins):
         scores = bin_results[i]
-        acc    = np.mean(scores) if scores else 0.0
-        rng    = f"{edges[i]:.3f} to {edges[i+1]:.3f}"
+        acc = np.mean(scores) if scores else 0.0
+        rng = f"{edges[i]:.3f} to {edges[i+1]:.3f}"
         print(f"{rng:<25} | {len(scores):<10} | {acc:.3f}")

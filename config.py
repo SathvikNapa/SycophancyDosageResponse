@@ -1,7 +1,13 @@
-"""
-config.py — Central registry for models, prompts, and experiment constants.
-All other modules import from here; nothing experiment-specific lives elsewhere.
-"""
+import os
+import logging
+import litellm
+
+# Silence litellm's print-based provider logs
+litellm.suppress_debug_info = True
+litellm.set_verbose = False
+os.environ["LITELLM_LOG"] = "ERROR"
+logging.getLogger("LiteLLM").setLevel(logging.ERROR)
+logging.getLogger("litellm").setLevel(logging.ERROR)
 
 MODELS = {
     "GPT5_4Mini":       "openai/gpt-5.4-mini-2026-03-17",
