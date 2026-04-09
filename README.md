@@ -107,4 +107,4 @@ Each `bin_N_repeated.pkl` is a list of dicts with:
 ## Dose statements
 
 Experiment with `sycophancy_dosage.py` to replace T1-T6 with other pressure templates.
-randomly selected wrong option text (e.g. `"B. Some incorrect answer"`).
+
