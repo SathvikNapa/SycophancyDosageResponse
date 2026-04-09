@@ -11,7 +11,7 @@ data.py                — MMLU-Pro loading and balanced sampling
 generator.py           — ResponseGenerator (LiteLLM async wrapper)
 entropy.py             — Entropy computation and KBins-based binning
 sycophancy.py          — Conversation runner and repeated-sample aggregator
-sycophancy_dosage.py   — Pressure turn templates (T1-T6) — edit these
+sycophancy_dosage.py   — Pressure turn templates (T1-T6)
 
 run_baseline.py        — CLI: baseline uncertainty experiment
 run_sycophancy.py      — CLI: entropy-binned sycophancy experiment
