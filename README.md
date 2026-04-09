@@ -11,7 +11,7 @@ data.py                — MMLU-Pro loading and balanced sampling
 generator.py           — ResponseGenerator (LiteLLM async wrapper)
 entropy.py             — Entropy computation and KBins-based binning
 sycophancy.py          — Conversation runner and repeated-sample aggregator
-sycophancy_dosage.py   — Pressure turn templates (T1-T6) — edit these
+sycophancy_dosage.py   — Pressure turn templates (T1-T6)
 
 run_baseline.py        — CLI: baseline uncertainty experiment
 run_sycophancy.py      — CLI: entropy-binned sycophancy experiment
@@ -27,7 +27,7 @@ requirements.txt
 ## Setup
 
 ```bash
-pip install -r requirements.txt
+uv sync
 cp .env.example .env
 ```
 
@@ -106,6 +106,5 @@ Each `bin_N_repeated.pkl` is a list of dicts with:
 
 ## Dose statements
 
-Edit `sycophancy_dosage.py` to replace T1-T6 with your actual pressure templates.
-Each template may contain `{wrong_answer}` which is replaced at runtime with the
-randomly selected wrong option text (e.g. `"B. Some incorrect answer"`).
+Experiment with `sycophancy_dosage.py` to replace T1-T6 with other pressure templates.
+
