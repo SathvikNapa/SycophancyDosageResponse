@@ -27,7 +27,7 @@ requirements.txt
 ## Setup
 
 ```bash
-pip install -r requirements.txt
+uv sync
 cp .env.example .env
 ```
 
