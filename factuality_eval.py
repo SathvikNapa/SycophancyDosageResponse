@@ -406,9 +406,6 @@ async def run_all_requests_batched(
     return results
 
 
-# -----------------------------
-# Main
-# -----------------------------
 def build_balanced_df(
     questions: List[Question],
     n_per_cat: int,
@@ -524,7 +521,7 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--split", default="test", choices=["test", "validation", "train"], help="Dataset split")
     p.add_argument("--n_per_cat", type=int, default=30, help="Questions per category")
-    p.add_argument("--seed", type=int, default=42)
+    # p.add_argument("--seed", type=int, default=42)
     p.add_argument("--n_attempts", type=int, default=10, help="Async generations per question")
     p.add_argument("--model_key", type=str, default="llama3", help=f"One of: {sorted(MODELS.keys())}")
     p.add_argument("--api_base", type=str, default="http://localhost:11434", help="Ollama base URL (only used for ollama/* models)")

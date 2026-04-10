@@ -4,6 +4,7 @@ import litellm
 
 # Silence litellm's print-based provider logs
 litellm.suppress_debug_info = True
+litellm.drop_params = True 
 litellm.set_verbose = False
 os.environ["LITELLM_LOG"] = "ERROR"
 logging.getLogger("LiteLLM").setLevel(logging.ERROR)
@@ -18,11 +19,11 @@ MODELS = {
     "ClaudeOpus":       "anthropic/claude-opus-4-6",
     "GPT4o":            "openai/gpt-4o",
     "GPT4oMini":        "openai/gpt-4o-mini",
-    "claude-3-5-sonnet":"claude-3-5-sonnet-20240620",
+    "claude-3-5-sonnet" :"anthropic/claude-3-5-sonnet-20240620",
+    "gemini":           "gemini/gemini-1.5-pro",
     "llama2-7b":        "together_ai/togethercomputer/Llama-2-7B-32K-Instruct",
     "llama2":           "ollama/llama2",
     "llama3.1-8b":      "ollama/llama3.1",
-    "gemini":           "gemini/gemini-1.5-pro",
     "olmo-3":           "ollama/olmo-3:7b",
     "llama3":           "ollama/llama3",
     "mistral":          "ollama/mistral:7b",

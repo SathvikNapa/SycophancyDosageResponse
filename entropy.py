@@ -48,13 +48,13 @@ def bin_items_by_entropy(
 
     binner = KBinsDiscretizer(n_bins=n_bins, encode="ordinal", strategy=strategy)
     bin_ids = binner.fit_transform(entropies).astype(int).ravel()
-    actual_n_bins = len(binner.bin_edges_[0]) - 1  # may be < n_bins after sklearn prunes
+    actual_n_bins = len(binner.bin_edges_[0]) - 1
 
     bins = {i: [] for i in range(actual_n_bins)}
     for item, bin_id in zip(experiment_metadata_l, bin_ids):
         bins[int(bin_id)].append(item)
 
-    _print_bin_summary(bins, binner, actual_n_bins)  # was: n_bins
+    _print_bin_summary(bins, binner, actual_n_bins)
     return bins, binner
 
 def _print_bin_summary(
@@ -110,8 +110,7 @@ def bin_by_entropy(
         bin_results[bin_indices[idx]].append(rec["correct"])
 
     edges = binner.bin_edges_[0]
-    # print(f"\n{'Entropy Bin Range':<25} | {'Samples':<10} | {'Accuracy'}")
-    # print("-" * 52)
+
     for i in range(n_bins):
         scores = bin_results[i]
         acc = np.mean(scores) if scores else 0.0
