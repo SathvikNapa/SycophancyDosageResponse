@@ -82,8 +82,8 @@ Response:
 class Question:
     query: str
     options: List[str]
-    answer: str         # correct answer letter (e.g., "A")
-    answer_index: int   # correct option index (0-9)
+    answer: str  # correct answer letter (e.g., "A")
+    answer_index: int  # correct option index (0-9)
     category: str
 
 
@@ -94,7 +94,9 @@ def load_mmlu_pro_with_letters(split: str = "test") -> List[Question]:
     out: List[Question] = []
     for item in ds:
         raw_options = item["options"]
-        labeled_options = [f"{letters[i]}. {text}" for i, text in enumerate(raw_options)]
+        labeled_options = [
+            f"{letters[i]}. {text}" for i, text in enumerate(raw_options)
+        ]
 
         out.append(
             Question(
@@ -182,7 +184,9 @@ class ResponseGenerator:
         if fixed_wrong_answer is not None:
             fwa = fixed_wrong_answer.upper()
             if fwa not in letters:
-                raise ValueError(f"fixed_wrong_answer '{fixed_wrong_answer}' not in valid letters {letters}")
+                raise ValueError(
+                    f"fixed_wrong_answer '{fixed_wrong_answer}' not in valid letters {letters}"
+                )
             if fwa == correct_answer:
                 raise ValueError("fixed_wrong_answer cannot equal the correct answer")
             return fwa
@@ -278,7 +282,9 @@ class ResponseGenerator:
         for tmpl in turn_templates:
             format_kwargs = {"wrong_answer": wrong_answer}
             if "{false_rationale}" in tmpl:
-                format_kwargs["false_rationale"] = false_rationale or "I found a source that supports it"
+                format_kwargs["false_rationale"] = (
+                    false_rationale or "I found a source that supports it"
+                )
 
             user_turn = tmpl.format(**format_kwargs)
 
@@ -296,8 +302,7 @@ class ResponseGenerator:
 
         correct_answer = question_row["answer"].upper()
         correctness = [
-            int(a == correct_answer) if a is not None else 0
-            for a in answers
+            int(a == correct_answer) if a is not None else 0 for a in answers
         ]
 
         return {
@@ -315,6 +320,7 @@ class ResponseGenerator:
             "ttf": self.compute_ttf(answers, correct_answer),
             "nof": self.compute_nof(answers),
         }
+
 
 # -----------------------------
 # Parsing / scoring helpers
@@ -364,7 +370,7 @@ async def _call_one(
                 err = f"{type(e).__name__}: {e}"
         # backoff outside semaphore
         if attempt < max_retries:
-            await asyncio.sleep(retry_backoff_s * (2 ** attempt) + random.random() * 0.05)
+            await asyncio.sleep(retry_backoff_s * (2**attempt) + random.random() * 0.05)
     return None, err
 
 
@@ -382,9 +388,13 @@ async def run_all_requests_batched(
     Returns list aligned with prompts: [(raw_response, err), ...]
     """
     sem = asyncio.Semaphore(concurrency)
-    results: List[Tuple[Optional[str], Optional[str]]] = [("","")] * len(prompts)
+    results: List[Tuple[Optional[str], Optional[str]]] = [("", "")] * len(prompts)
 
-    for start in tqdm(range(0, len(prompts), batch_size), desc="batch", total=(len(prompts) + batch_size - 1) // batch_size):
+    for start in tqdm(
+        range(0, len(prompts), batch_size),
+        desc="batch",
+        total=(len(prompts) + batch_size - 1) // batch_size,
+    ):
         end = min(start + batch_size, len(prompts))
         batch_prompts = prompts[start:end]
 
@@ -420,7 +430,9 @@ def build_balanced_df(
     return balanced
 
 
-def expand_jobs(df: pd.DataFrame, n_attempts: int) -> Tuple[List[Dict[str, Any]], List[str]]:
+def expand_jobs(
+    df: pd.DataFrame, n_attempts: int
+) -> Tuple[List[Dict[str, Any]], List[str]]:
     """
     Create a flat list of jobs, one per (question, attempt).
     Returns:
@@ -506,12 +518,14 @@ def aggregate_results(
             entry["parseable"] += 1
             entry["correctness"].append(int(parsed == entry["actual_answer"]))
 
-    # finalize: uncertainty etc.
     out_list: List[Dict[str, Any]] = []
     for qid in sorted(per_q.keys()):
         entry = per_q[qid]
-        # uncertainty defined the same way you used: 1 - avg correctness
-        entry["uncertainty"] = 1.0 - (sum(entry["correctness"]) / float(n_attempts)) if n_attempts else None
+        entry["uncertainty"] = (
+            1.0 - (sum(entry["correctness"]) / float(n_attempts))
+            if n_attempts
+            else None
+        )
         out_list.append(entry)
 
     return out_list
@@ -519,19 +533,56 @@ def aggregate_results(
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--split", default="test", choices=["test", "validation", "train"], help="Dataset split")
+    p.add_argument(
+        "--split",
+        default="test",
+        choices=["test", "validation", "train"],
+        help="Dataset split",
+    )
     p.add_argument("--n_per_cat", type=int, default=30, help="Questions per category")
-    # p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--n_attempts", type=int, default=10, help="Async generations per question")
-    p.add_argument("--model_key", type=str, default="llama3", help=f"One of: {sorted(MODELS.keys())}")
-    p.add_argument("--api_base", type=str, default="http://localhost:11434", help="Ollama base URL (only used for ollama/* models)")
+    p.add_argument(
+        "--n_attempts", type=int, default=10, help="Async generations per question"
+    )
+    p.add_argument(
+        "--model_key",
+        type=str,
+        default="llama3",
+        help=f"One of: {sorted(MODELS.keys())}",
+    )
+    p.add_argument(
+        "--api_base",
+        type=str,
+        default="http://localhost:11434",
+        help="Ollama base URL (only used for ollama/* models)",
+    )
     p.add_argument("--concurrency", type=int, default=8, help="Max in-flight requests")
-    p.add_argument("--batch_size", type=int, default=64, help="How many tasks to submit per gather batch")
-    p.add_argument("--timeout_s", type=float, default=120.0, help="Per-request timeout seconds")
-    p.add_argument("--max_retries", type=int, default=1, help="Retries per request on failure")
-    p.add_argument("--retry_backoff_s", type=float, default=0.5, help="Base backoff seconds (exponential)")
-    p.add_argument("--out", type=str, default="base_experiment_metadata.pkl", help="Output pickle path")
-    p.add_argument("--litellm_debug", action="store_true", help="Enable LiteLLM debug logging")
+    p.add_argument(
+        "--batch_size",
+        type=int,
+        default=64,
+        help="How many tasks to submit per gather batch",
+    )
+    p.add_argument(
+        "--timeout_s", type=float, default=120.0, help="Per-request timeout seconds"
+    )
+    p.add_argument(
+        "--max_retries", type=int, default=1, help="Retries per request on failure"
+    )
+    p.add_argument(
+        "--retry_backoff_s",
+        type=float,
+        default=0.5,
+        help="Base backoff seconds (exponential)",
+    )
+    p.add_argument(
+        "--out",
+        type=str,
+        default="base_experiment_metadata.pkl",
+        help="Output pickle path",
+    )
+    p.add_argument(
+        "--litellm_debug", action="store_true", help="Enable LiteLLM debug logging"
+    )
     return p.parse_args()
 
 
@@ -569,9 +620,10 @@ async def async_main(args: argparse.Namespace) -> None:
     with open(args.out, "wb") as f:
         pickle.dump(experiment_metadata_l, f)
 
-    # quick summary
     total_q = len(experiment_metadata_l)
-    avg_unc = sum(e["uncertainty"] for e in experiment_metadata_l if e["uncertainty"] is not None) / max(total_q, 1)
+    avg_unc = sum(
+        e["uncertainty"] for e in experiment_metadata_l if e["uncertainty"] is not None
+    ) / max(total_q, 1)
     print(f"\nSaved: {args.out}")
     print(f"Questions: {total_q} | Attempts per question: {args.n_attempts}")
     print(f"Avg uncertainty: {avg_unc:.4f}")

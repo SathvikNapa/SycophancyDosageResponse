@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "asyncio>=4.0.0",
+    "black>=26.3.1",
     "bokeh>=3.9.0",
     "datasets>=4.8.4",
     "litellm>=1.83.4",
@@ -13,5 +14,6 @@ dependencies = [
     "pandas>=2.3.3",
     "requests>=2.33.1",
     "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.4.1",
     "tqdm>=4.67.3",
 ]
