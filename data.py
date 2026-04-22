@@ -27,8 +27,7 @@ def load_mmlu_pro_with_letters(split: str = "test") -> List[Question]:
     questions: List[Question] = []
     for item in dataset:
         labeled_options = [
-            f"{letters[i]}. {text}"
-            for i, text in enumerate(item["options"])
+            f"{letters[i]}. {text}" for i, text in enumerate(item["options"])
         ]
         questions.append(
             Question(

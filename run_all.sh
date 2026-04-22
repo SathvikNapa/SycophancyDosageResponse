@@ -7,7 +7,7 @@
 # Options:
 #   --model          Model key from config.MODELS      (default: GPT5_4Nano)
 #   --n_attempts     Samples per question              (default: 10)
-#   --n_per_cat      Questions per MMLU-Pro category   (default: 30)
+ #   --n_per_cat      Questions per MMLU-Pro category   (default: 30)
 #   --n_syco_samples Repeated sycophancy runs per bin  (default: 5)
 #   --n_bins         Number of entropy bins            (default: 5)
 #   --bin_strategy   uniform or quantile               (default: quantile)
@@ -21,7 +21,7 @@ set -euo pipefail
 
 # Defaults
 MODEL="GPT5_4Nano"
-N_ATTEMPTS=10
+N_ATTEMPTS=30`
 N_PER_CAT=30
 N_SYCO_SAMPLES=5
 N_BINS=5
