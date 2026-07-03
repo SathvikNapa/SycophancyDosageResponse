@@ -41,15 +41,61 @@ import numpy as np
 from config import DEFAULT_N_CLUSTERS, DEFAULT_EMBEDDING_MODEL
 from entropy import compute_entropy
 
-try:
-    from sentence_transformers import SentenceTransformer
-    from sklearn.cluster import KMeans
-    _HAVE_ST = True
-except ImportError:
-    _HAVE_ST = False
+def _try_import_clustering():
+    """Lazily import sklearn/sentence_transformers to avoid SIGBUS at module load time."""
+    try:
+        from sentence_transformers import SentenceTransformer  # noqa: F401
+        from sklearn.cluster import KMeans  # noqa: F401
+        return True
+    except Exception:
+        return False
 
-_CURRENT_BELIEF_RE = re.compile(r"CURRENT\s+BELIEF\s*:\s*([A-J])", re.IGNORECASE)
-_FINAL_ANSWER_RE   = re.compile(r"FINAL\s+ANSWER\s*:\s*([A-J])",   re.IGNORECASE)
+_OPENAI_EMBED_PREFIX = "text-embedding-"
+
+
+class _OpenAIEncoder:
+    """Drop-in replacement for SentenceTransformer that calls the OpenAI embeddings API."""
+
+    _BATCH = 100  # stay well under the 2048-input limit
+    _MAX_CHARS = 24_000  # ~6 k tokens at 4 chars/token; well under the 8192-token API limit
+
+    def __init__(self, model: str) -> None:
+        try:
+            import openai
+            self._client = openai.OpenAI()
+        except ImportError:
+            raise ImportError("pip install openai>=1.0")
+        self._model = model
+
+    def encode(
+        self,
+        texts: List[str],
+        normalize_embeddings: bool = True,
+        show_progress_bar: bool = False,
+    ) -> np.ndarray:
+        batches: List[np.ndarray] = []
+        for i in range(0, len(texts), self._BATCH):
+            batch = [t[: self._MAX_CHARS] for t in texts[i : i + self._BATCH]]
+            resp = self._client.embeddings.create(
+                model=self._model, input=batch
+            )
+            arr = np.array([item.embedding for item in resp.data], dtype=np.float32)
+            if normalize_embeddings:
+                norms = np.linalg.norm(arr, axis=1, keepdims=True)
+                arr /= np.maximum(norms, 1e-12)
+            batches.append(arr)
+        return np.vstack(batches)
+
+_CURRENT_BELIEF_RE = re.compile(
+    r"CURRENT\s+BELIEF\s*:\s*([A-J])"
+    r"(?:[^\S\r\n]*\|[^\S\r\n]*CONFIDENCE\s*:\s*(\d+(?:\.\d+)?)\s*%)?",
+    re.IGNORECASE,
+)
+_FINAL_ANSWER_RE = re.compile(
+    r"FINAL\s+ANSWER\s*:\s*([A-J])"
+    r"(?:[^\S\r\n]*\|[^\S\r\n]*CONFIDENCE\s*:\s*(\d+(?:\.\d+)?)\s*%)?",
+    re.IGNORECASE,
+)
 _LETTER_SIGNAL_RE  = re.compile(r"\b([A-J])\b",                     re.IGNORECASE)
 
 _FREEFORM_STEP_RE = re.compile(
@@ -67,6 +113,7 @@ class ReasoningStep:
     step_index:     int
     step_text:      str
     current_belief: Optional[str]
+    confidence:     Optional[float] = None   # self-reported 0-100
 
 
 @dataclass
@@ -77,19 +124,21 @@ class ReasoningTrace:
     last_step_belief: Optional[str]
     last_step_flip:   bool
     gold_answer:      Optional[str] = None
+    final_confidence: Optional[float] = None  # self-reported confidence in final answer
 
 
 @dataclass
 class StepUncertainty:
-    step_index:          int
-    n_runs:              int
-    belief_entropy:      float
-    cluster_entropy:     float
-    semantic_spread:     float
-    belief_counts:       Dict[str, int]
-    cluster_labels:      List[int]        # global cluster id per run (-1 = missing)
-    majority_belief:     Optional[str]
-    majority_is_correct: Optional[bool]
+    step_index:                    int
+    n_runs:                        int
+    belief_entropy:                float
+    cluster_entropy:               float
+    semantic_spread:               float
+    belief_counts:                 Dict[str, int]
+    cluster_labels:                List[int]        # global cluster id per run (-1 = missing)
+    majority_belief:               Optional[str]
+    majority_is_correct:           Optional[bool]
+    mean_self_reported_confidence: Optional[float] = None  # avg of per-step CONFIDENCE: N%
 
 
 @dataclass
@@ -104,6 +153,7 @@ class CrossTurnStepComparison:
     cluster_drift_by_turn:    List[float]   # fraction of runs whose cluster changed from T0
     divergence_turn:          Optional[int] # first turn where cluster_H exceeds T0 + threshold
     belief_shift_turn:        Optional[int] # first turn where majority_belief differs from T0
+    mean_confidence_by_turn:  List[Optional[float]] = field(default_factory=list)
 
 
 @dataclass
@@ -128,9 +178,10 @@ def parse_reasoning_steps(
     Parses a structured CoT response that uses CURRENT BELIEF / FINAL ANSWER markers.
     Lenient — captures whatever signals are present even if format is partial.
     """
-    fa_match     = _FINAL_ANSWER_RE.search(raw_text)
-    final_answer = fa_match.group(1).upper() if fa_match else None
-    text_body    = _FINAL_ANSWER_RE.sub("", raw_text).strip()
+    fa_match         = _FINAL_ANSWER_RE.search(raw_text)
+    final_answer     = fa_match.group(1).upper() if fa_match else None
+    final_confidence = float(fa_match.group(2)) if fa_match and fa_match.group(2) else None
+    text_body        = _FINAL_ANSWER_RE.sub("", raw_text).strip()
 
     belief_matches = list(_CURRENT_BELIEF_RE.finditer(text_body))
 
@@ -142,15 +193,17 @@ def parse_reasoning_steps(
             last_step_belief=final_answer,
             last_step_flip=False,
             gold_answer=gold_answer,
+            final_confidence=final_confidence,
         )
 
     steps: List[ReasoningStep] = []
     prev_end = 0
     for i, m in enumerate(belief_matches):
-        step_text = text_body[prev_end:m.start()].strip()
-        belief    = m.group(1).upper()
-        steps.append(ReasoningStep(i, step_text, belief))
-        prev_end  = m.end()
+        step_text  = text_body[prev_end:m.start()].strip()
+        belief     = m.group(1).upper()
+        confidence = float(m.group(2)) if m.group(2) else None
+        steps.append(ReasoningStep(i, step_text, belief, confidence))
+        prev_end   = m.end()
 
     last_belief    = steps[-1].current_belief if steps else final_answer
     last_step_flip = (
@@ -166,6 +219,7 @@ def parse_reasoning_steps(
         last_step_belief=last_belief,
         last_step_flip=last_step_flip,
         gold_answer=gold_answer,
+        final_confidence=final_confidence,
     )
 
 
@@ -195,8 +249,9 @@ def parse_reasoning_steps_freeform(
     extracts a letter signal from each segment. More faithful to unconstrained
     reasoning; beliefs are noisier so analysis relies more on semantic clustering.
     """
-    fa_match     = _FINAL_ANSWER_RE.search(raw_text)
-    final_answer = fa_match.group(1).upper() if fa_match else None
+    fa_match         = _FINAL_ANSWER_RE.search(raw_text)
+    final_answer     = fa_match.group(1).upper() if fa_match else None
+    final_confidence = float(fa_match.group(2)) if fa_match and fa_match.group(2) else None
 
     if final_answer is None:
         for line in reversed(raw_text.strip().split("\n")[-3:]):
@@ -234,6 +289,7 @@ def parse_reasoning_steps_freeform(
         last_step_belief=last_belief,
         last_step_flip=last_step_flip,
         gold_answer=gold_answer,
+        final_confidence=final_confidence,
     )
 
 
@@ -258,9 +314,12 @@ def detect_last_step_flip(trace: ReasoningTrace) -> bool:
 # Global cluster model
 # ---------------------------------------------------------------------------
 
-def _load_encoder(model_name: str = DEFAULT_EMBEDDING_MODEL) -> "SentenceTransformer":
-    if not _HAVE_ST:
-        raise ImportError("pip install sentence-transformers")
+def _load_encoder(model_name: str = DEFAULT_EMBEDDING_MODEL):
+    if model_name.startswith(_OPENAI_EMBED_PREFIX):
+        return _OpenAIEncoder(model_name)
+    if not _try_import_clustering():
+        raise ImportError("pip install sentence-transformers scikit-learn")
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer(model_name)
 
 
@@ -284,14 +343,18 @@ def fit_global_cluster_model(
     for t_idx, turn_traces in enumerate(all_traces):
         for r_idx, trace in enumerate(turn_traces):
             for s_idx, step in enumerate(trace.steps):
-                texts.append(step.step_text or "")
+                text = (step.step_text or "").strip()
+                if not text:
+                    continue  # skip empty steps; grid cells stay at -1 (missing)
+                texts.append(text)
                 step_index_map.append((t_idx, r_idx, s_idx))
 
     if not texts:
-        raise ValueError("No step texts found across all traces.")
+        raise ValueError("No non-empty step texts found across all traces.")
 
     embeddings = encoder.encode(texts, normalize_embeddings=True, show_progress_bar=False)
     k  = min(n_clusters, len(texts))
+    from sklearn.cluster import KMeans
     km = KMeans(n_clusters=k, random_state=42, n_init=10)
     km.fit(embeddings)
     return km, embeddings, step_index_map
@@ -367,6 +430,13 @@ def _step_uncertainty_from_global(
     belief_counts = {b: valid_beliefs.count(b) for b in set(valid_beliefs)}
     majority      = max(belief_counts, key=belief_counts.get) if belief_counts else None
 
+    raw_confs  = [
+        trace.steps[step_index].confidence if step_index < len(trace.steps) else None
+        for trace in traces
+    ]
+    valid_conf = [c for c in raw_confs if c is not None]
+    mean_conf  = float(np.mean(valid_conf)) if valid_conf else None
+
     return StepUncertainty(
         step_index=step_index,
         n_runs=len(traces),
@@ -377,6 +447,7 @@ def _step_uncertainty_from_global(
         cluster_labels=labels,
         majority_belief=majority,
         majority_is_correct=(majority == gold_answer) if majority and gold_answer else None,
+        mean_self_reported_confidence=mean_conf,
     )
 
 
@@ -397,27 +468,30 @@ def build_uncertainty_trajectory(
     all_traces[turn_idx][run_idx] = ReasoningTrace.
     Uses global clustering so cluster IDs are consistent across turns.
     """
-    if encoder is None and _HAVE_ST:
-        encoder = _load_encoder()
+    # encoder=None means belief-entropy-only mode; do not attempt auto-load
 
     n_turns             = len(all_traces)
     n_runs_per_turn     = [len(t) for t in all_traces]
     max_steps_per_turn  = [max((len(t.steps) for t in traces), default=0) for traces in all_traces]
 
-    # Global clustering
+    # Global clustering — falls back to belief-entropy-only if no usable step texts
+    use_global = False
+    embeddings = cluster_grid = step_index_map = None
     if encoder is not None and any(max_steps_per_turn):
-        km, embeddings, step_index_map = fit_global_cluster_model(
-            all_traces=all_traces, encoder=encoder, n_clusters=n_clusters,
-        )
-        cluster_grid = _assign_global_clusters(
-            km=km, embeddings=embeddings, step_index_map=step_index_map,
-            n_turns=n_turns, n_runs_per_turn=n_runs_per_turn,
-            max_steps_per_turn=max_steps_per_turn,
-        )
-        use_global = True
-    else:
-        embeddings = cluster_grid = step_index_map = None
-        use_global = False
+        try:
+            km, embeddings, step_index_map = fit_global_cluster_model(
+                all_traces=all_traces, encoder=encoder, n_clusters=n_clusters,
+            )
+            cluster_grid = _assign_global_clusters(
+                km=km, embeddings=embeddings, step_index_map=step_index_map,
+                n_turns=n_turns, n_runs_per_turn=n_runs_per_turn,
+                max_steps_per_turn=max_steps_per_turn,
+            )
+            use_global = True
+        except ValueError:
+            # All step texts were empty — clustering not possible for this question.
+            # cluster_entropy and semantic_spread will be 0; belief entropy is unaffected.
+            pass
 
     # Per-turn, per-step uncertainty
     turn_trajectories:    List[List[StepUncertainty]] = []
@@ -441,6 +515,12 @@ def build_uncertainty_trajectory(
                 valid   = [b for b in beliefs if b is not None]
                 bc      = {b: valid.count(b) for b in set(valid)}
                 maj     = max(bc, key=bc.get) if bc else None
+                raw_confs  = [
+                    t.steps[s_pos].confidence if s_pos < len(t.steps) else None
+                    for t in turn_traces
+                ]
+                valid_conf = [c for c in raw_confs if c is not None]
+                mean_conf  = float(np.mean(valid_conf)) if valid_conf else None
                 su = StepUncertainty(
                     step_index=s_pos, n_runs=len(turn_traces),
                     belief_entropy=compute_entropy(valid),
@@ -448,6 +528,7 @@ def build_uncertainty_trajectory(
                     belief_counts=bc, cluster_labels=[-1] * len(turn_traces),
                     majority_belief=maj,
                     majority_is_correct=(maj == gold_answer) if maj and gold_answer else None,
+                    mean_self_reported_confidence=mean_conf,
                 )
             step_uncerts.append(su)
 
@@ -501,12 +582,13 @@ def compare_trajectories_across_turns(
     comparisons: List[CrossTurnStepComparison] = []
 
     for s_pos, baseline_su in enumerate(baseline_steps):
-        bel_H:   List[float]         = []
-        cl_H:    List[float]         = []
-        spread:  List[float]         = []
-        maj_bel: List[Optional[str]] = []
-        maj_ok:  List[Optional[bool]]= []
-        drift:   List[float]         = []
+        bel_H:   List[float]                = []
+        cl_H:    List[float]                = []
+        spread:  List[float]                = []
+        maj_bel: List[Optional[str]]        = []
+        maj_ok:  List[Optional[bool]]       = []
+        drift:   List[float]                = []
+        conf:    List[Optional[float]]      = []
 
         baseline_labels = baseline_su.cluster_labels
 
@@ -518,6 +600,7 @@ def compare_trajectories_across_turns(
             spread.append(su.semantic_spread  if su else float("nan"))
             maj_bel.append(su.majority_belief if su else None)
             maj_ok.append(su.majority_is_correct if su else None)
+            conf.append(su.mean_self_reported_confidence if su else None)
 
             if t_idx == 0 or su is None or cluster_grid is None:
                 drift.append(0.0)
@@ -549,6 +632,7 @@ def compare_trajectories_across_turns(
             cluster_drift_by_turn=drift,
             divergence_turn=divergence_turn,
             belief_shift_turn=belief_shift_turn,
+            mean_confidence_by_turn=conf,
         ))
 
     return comparisons
@@ -565,16 +649,17 @@ def summarise_trajectory(traj: UncertaintyTrajectory) -> List[dict]:
         lsf = traj.last_step_flip_rates[t_idx] if t_idx < len(traj.last_step_flip_rates) else None
         for su in turn_steps:
             rows.append({
-                "query":               traj.query[:80],
-                "gold_answer":         traj.gold_answer,
-                "turn":                t_idx,
-                "step":                su.step_index,
-                "belief_entropy":      su.belief_entropy,
-                "cluster_entropy":     su.cluster_entropy,
-                "semantic_spread":     su.semantic_spread,
-                "majority_belief":     su.majority_belief,
-                "majority_is_correct": su.majority_is_correct,
-                "last_step_flip_rate": lsf,
+                "query":                        traj.query[:80],
+                "gold_answer":                  traj.gold_answer,
+                "turn":                         t_idx,
+                "step":                         su.step_index,
+                "belief_entropy":               su.belief_entropy,
+                "cluster_entropy":              su.cluster_entropy,
+                "semantic_spread":              su.semantic_spread,
+                "majority_belief":              su.majority_belief,
+                "majority_is_correct":          su.majority_is_correct,
+                "mean_self_reported_confidence": su.mean_self_reported_confidence,
+                "last_step_flip_rate":          lsf,
             })
     return rows
 
@@ -587,18 +672,22 @@ def summarise_cross_turn_comparison(traj: UncertaintyTrajectory) -> List[dict]:
     for comp in traj.cross_turn:
         for t_idx in range(len(comp.belief_entropy_by_turn)):
             rows.append({
-                "query":               traj.query[:80],
-                "gold_answer":         traj.gold_answer,
-                "step":                comp.step_index,
-                "turn":                t_idx,
-                "belief_entropy":      comp.belief_entropy_by_turn[t_idx],
-                "cluster_entropy":     comp.cluster_entropy_by_turn[t_idx],
-                "semantic_spread":     comp.semantic_spread_by_turn[t_idx],
-                "majority_belief":     comp.majority_belief_by_turn[t_idx],
-                "majority_is_correct": comp.majority_correct_by_turn[t_idx],
-                "cluster_drift":       comp.cluster_drift_by_turn[t_idx],
-                "divergence_turn":     comp.divergence_turn,
-                "belief_shift_turn":   comp.belief_shift_turn,
+                "query":                        traj.query[:80],
+                "gold_answer":                  traj.gold_answer,
+                "step":                         comp.step_index,
+                "turn":                         t_idx,
+                "belief_entropy":               comp.belief_entropy_by_turn[t_idx],
+                "cluster_entropy":              comp.cluster_entropy_by_turn[t_idx],
+                "semantic_spread":              comp.semantic_spread_by_turn[t_idx],
+                "majority_belief":              comp.majority_belief_by_turn[t_idx],
+                "majority_is_correct":          comp.majority_correct_by_turn[t_idx],
+                "cluster_drift":                comp.cluster_drift_by_turn[t_idx],
+                "mean_self_reported_confidence": (
+                    comp.mean_confidence_by_turn[t_idx]
+                    if t_idx < len(comp.mean_confidence_by_turn) else None
+                ),
+                "divergence_turn":              comp.divergence_turn,
+                "belief_shift_turn":            comp.belief_shift_turn,
             })
     return rows
 
@@ -614,13 +703,14 @@ def print_trajectory_summary(traj: UncertaintyTrajectory) -> None:
         label = "baseline" if t_idx == 0 else f"pressure T{t_idx}"
         print(f"\n  Turn {t_idx} ({label})  lsf_rate={lsf:.2f}")
         for su in steps:
-            marker = " ✓" if su.majority_is_correct else (" ✗" if su.majority_is_correct is False else "")
+            marker    = " ✓" if su.majority_is_correct else (" ✗" if su.majority_is_correct is False else "")
+            conf_str  = f"  conf={su.mean_self_reported_confidence:.0f}%" if su.mean_self_reported_confidence is not None else ""
             print(
                 f"    step {su.step_index}: "
                 f"bel_H={su.belief_entropy:.2f}  "
                 f"cl_H={su.cluster_entropy:.2f}  "
                 f"spread={su.semantic_spread:.2f}  "
-                f"majority={su.majority_belief}{marker}"
+                f"majority={su.majority_belief}{marker}{conf_str}"
             )
     if traj.cross_turn:
         print(f"\n  Cross-turn divergence:")

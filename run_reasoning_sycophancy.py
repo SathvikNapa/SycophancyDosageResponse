@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import os
 import pickle
 import random
@@ -57,7 +58,13 @@ from config import (
     DEFAULT_TIMEOUT_S,
     REASONING_MODELS,
 )
-from entropy import bin_items_by_entropy, bin_items_by_entropy_and_category
+from entropy import (
+    bin_items_by_entropy,
+    bin_items_by_entropy_and_category,
+    bin_items_by_calibrated_prob,
+    bin_items_by_calibrated_prob_and_category,
+    load_calibration,
+)
 from generator import ResponseGenerator, extract_letter
 from reasoning_uncertainty import (
     ReasoningTrace,
@@ -249,26 +256,65 @@ async def run_reasoning_repeated_single(
 # Batch runner over a list of items
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Per-item checkpointing helpers
+# ---------------------------------------------------------------------------
+
+def _ckpt_path(checkpoint_dir: str, item_idx: int) -> str:
+    return os.path.join(checkpoint_dir, f"item_{item_idx:05d}.pkl")
+
+
+def _load_checkpoints(checkpoint_dir: str, n_items: int) -> Dict[int, UncertaintyTrajectory]:
+    done: Dict[int, UncertaintyTrajectory] = {}
+    if not os.path.isdir(checkpoint_dir):
+        return done
+    for i in range(n_items):
+        path = _ckpt_path(checkpoint_dir, i)
+        with contextlib.suppress(Exception):
+            with open(path, "rb") as f:
+                done[i] = pickle.load(f)
+    return done
+
+
+def _save_checkpoint(checkpoint_dir: str, item_idx: int, traj: UncertaintyTrajectory) -> None:
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    with open(_ckpt_path(checkpoint_dir, item_idx), "wb") as f:
+        pickle.dump(traj, f)
+
+
+# ---------------------------------------------------------------------------
+# Batch runner over a list of items
+# ---------------------------------------------------------------------------
+
 async def run_reasoning_over_items(
-    items:          List[Dict[str, Any]],
-    rg:             ResponseGenerator,
-    dose_statements:List[str],
-    model:          str,
-    n_samples:      int,
-    concurrency:    int,
-    timeout_s:      Optional[float],
-    base_seed:      int,
-    use_clustering: bool,
-    n_clusters:     int,
-    encoder:        Any,
-    wrong_answers:  Optional[List[Tuple[str, str]]] = None,
-    freeform:       bool = False,
+    items:           List[Dict[str, Any]],
+    rg:              ResponseGenerator,
+    dose_statements: List[str],
+    model:           str,
+    n_samples:       int,
+    concurrency:     int,
+    timeout_s:       Optional[float],
+    base_seed:       int,
+    use_clustering:  bool,
+    n_clusters:      int,
+    encoder:         Any,
+    wrong_answers:   Optional[List[Tuple[str, str]]] = None,
+    freeform:        bool = False,
+    checkpoint_dir:  Optional[str] = None,
 ) -> List[UncertaintyTrajectory]:
     """
     Runs the reasoning experiment over a list of items.
     wrong_answers: pre-computed [(text, letter)] for each item.
                    If None, a random wrong option is chosen per item.
+    checkpoint_dir: if set, saves each completed item to disk so a crashed
+                    run can resume without redoing finished work.
     """
+    done: Dict[int, UncertaintyTrajectory] = {}
+    if checkpoint_dir:
+        done = _load_checkpoints(checkpoint_dir, len(items))
+        if done:
+            print(f"  Checkpoint: {len(done)}/{len(items)} items already done, resuming.")
+
     sem = asyncio.Semaphore(concurrency)
     rng = random.Random(base_seed)
 
@@ -291,16 +337,22 @@ async def run_reasoning_over_items(
             encoder=encoder,
             freeform=freeform,
         )
+        if checkpoint_dir:
+            _save_checkpoint(checkpoint_dir, i, traj)
         return i, traj
 
-    tasks   = [asyncio.create_task(run_one(i)) for i in range(len(items))]
-    results = [None] * len(items)
+    remaining = [i for i in range(len(items)) if i not in done]
+    tasks     = [asyncio.create_task(run_one(i)) for i in remaining]
+    results: Dict[int, UncertaintyTrajectory] = dict(done)
 
     for fut in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="reasoning conversations"):
-        i, traj = await fut
-        results[i] = traj
+        try:
+            i, traj = await fut
+            results[i] = traj
+        except Exception as e:
+            print(f"\n  WARNING: item failed, skipping. Error: {e}")
 
-    return results
+    return [results[i] for i in range(len(items)) if i in results]
 
 
 # ---------------------------------------------------------------------------
@@ -325,6 +377,7 @@ async def run_reasoning_bins(
         print(f"{label_prefix}Reasoning bin {bin_idx} — {len(items)} items, {args.n_reasoning_samples} runs each")
         print(f"{'='*60}")
 
+        checkpoint_dir = os.path.join(out_dir, f"bin_{bin_idx}_partial")
         trajectories = await run_reasoning_over_items(
             items=items,
             rg=rg,
@@ -338,6 +391,7 @@ async def run_reasoning_bins(
             n_clusters=args.n_clusters,
             encoder=encoder,
             freeform=args.freeform,
+            checkpoint_dir=checkpoint_dir,
         )
 
         # Print bin summary
@@ -396,8 +450,17 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--no_clustering",       action="store_true",
                    help="Skip semantic clustering (belief entropy only — much faster)")
     p.add_argument("--stratify_by_category",action="store_true",
-                   help="Run experiment separately per MMLU-Pro category")
+                   help="Run experiment separately per category")
+    p.add_argument("--dataset",             type=str,   default="",
+                   help="Dataset subdirectory (e.g. 'aime_2025', 'aime', 'gpqa_diamond'). "
+                        "Leave empty for legacy mmlu_pro path.")
     p.add_argument("--out_dir",             type=str,   default="experiment_out")
+    p.add_argument("--temperature",         type=float, default=None,
+                   help="Sampling temperature (default: model API default)")
+    p.add_argument("--use_calibrated_prob", action="store_true",
+                   help="Bin by isotonic-calibrated hardness probability instead of raw entropy. "
+                        "Requires calibrated_prob in the baseline pkl (run run_baseline.py first). "
+                        "Enables cross-model comparison on a fixed [0,1] scale.")
     return p.parse_args()
 
 
@@ -412,8 +475,14 @@ async def main() -> None:
             f"Recommended models: {sorted(REASONING_MODELS)}"
         )
 
+    base_dir = (
+        os.path.join(args.out_dir, args.model, args.dataset)
+        if args.dataset
+        else os.path.join(args.out_dir, args.model)
+    )
+
     # Load baseline metadata
-    pkl_path = os.path.join(args.out_dir, args.model, "base_experiment_metadata.pkl")
+    pkl_path = os.path.join(base_dir, "base_experiment_metadata.pkl")
     if not os.path.exists(pkl_path):
         raise FileNotFoundError(
             f"Baseline metadata not found at {pkl_path}. "
@@ -423,43 +492,53 @@ async def main() -> None:
     with open(pkl_path, "rb") as f:
         experiment_metadata_l = pickle.load(f)
 
-    # Load sentence-transformer encoder once (reused across all bins)
+    # Load encoder once (reused across all bins).
+    # _load_encoder routes OpenAI text-embedding-* models to _OpenAIEncoder and
+    # everything else to SentenceTransformer.
     encoder = None
     if not args.no_clustering:
         try:
-            from sentence_transformers import SentenceTransformer
+            from reasoning_uncertainty import _load_encoder
             print(f"Loading embedding model '{args.embedding_model}'...")
-            encoder = SentenceTransformer(args.embedding_model)
+            encoder = _load_encoder(args.embedding_model)
             print("  Encoder ready.")
-        except ImportError:
-            print(
-                "WARNING: sentence-transformers not installed. "
-                "Falling back to belief-entropy-only mode (no semantic clustering). "
-                "Install with: pip install sentence-transformers"
-            )
+        except Exception as e:
+            print(f"WARNING: could not load encoder ({e}). Falling back to belief-entropy-only mode.")
             args.no_clustering = True
 
-    rg = ResponseGenerator()
+    rg = ResponseGenerator(temperature=args.temperature)
 
     # Global bins
     print(f"\nBinning {len(experiment_metadata_l)} items into {args.n_bins} bins...")
-    entropy_bins, _ = bin_items_by_entropy(
-        experiment_metadata_l,
-        n_bins=args.n_bins,
-        strategy=args.bin_strategy,
-    )
-    global_out_dir = os.path.join(args.out_dir, args.model, "reasoning_bin")
-    await run_reasoning_bins(entropy_bins, rg, args, global_out_dir, encoder)
+    if args.use_calibrated_prob:
+        print("Binning by calibrated hardness probability (loaded from calibration.pkl).")
+        regressor = load_calibration(experiment_metadata_l, base_dir)
+        global_bins, _, _ = bin_items_by_calibrated_prob(
+            experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+            regressor=regressor,
+        )
+    else:
+        global_bins, _ = bin_items_by_entropy(
+            experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+        )
+        regressor = None
+
+    global_out_dir = os.path.join(base_dir, "reasoning_bin")
+    await run_reasoning_bins(global_bins, rg, args, global_out_dir, encoder)
 
     # Per-category bins
     if args.stratify_by_category:
         print(f"\n{'='*60}")
         print("Running per-category reasoning experiment...")
-        category_bins = bin_items_by_entropy_and_category(
-            experiment_metadata_l,
-            n_bins=args.n_bins,
-            strategy=args.bin_strategy,
-        )
+        if args.use_calibrated_prob:
+            category_bins, _ = bin_items_by_calibrated_prob_and_category(
+                experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+                regressor=regressor,
+            )
+        else:
+            category_bins = bin_items_by_entropy_and_category(
+                experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+            )
         for category, bins in sorted(category_bins.items()):
             safe_cat   = category.replace(" ", "_").replace("/", "_")
             cat_out    = os.path.join(global_out_dir, "by_category", safe_cat)

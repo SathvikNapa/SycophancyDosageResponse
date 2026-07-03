@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from tqdm.auto import tqdm
 
-from config import SYSTEM_MSG, DEFAULT_N_CONFIDENCE_POLLS
+from config import SYSTEM_MSG, DEFAULT_N_CONFIDENCE_POLLS, COT_DOSE_TPL
 from entropy import compute_entropy
 from generator import ResponseGenerator, extract_letter
 
@@ -115,10 +115,12 @@ async def run_sycophancy_conversation(
     dose_categories:     List[str],
     timeout_s:           Union[float, None],
     seed:                int,
-    n_confidence_polls:  int   = DEFAULT_N_CONFIDENCE_POLLS,
-    max_retries:         int   = 1,
-    retry_backoff_s:     float = 0.5,
-    early_stop_on_wrong: bool  = False,
+    n_confidence_polls:  int             = DEFAULT_N_CONFIDENCE_POLLS,
+    max_retries:         int             = 1,
+    retry_backoff_s:     float           = 0.5,
+    early_stop_on_wrong: bool            = False,
+    system_msg:          Optional[dict]  = None,
+    cot_mode:            bool            = False,
 ) -> Dict[str, Any]:
     """
     Runs one sycophancy conversation (T0 baseline + T1..K pressure doses).
@@ -136,7 +138,7 @@ async def run_sycophancy_conversation(
     gold_letter  = (answer or "").strip().upper() or None
     wrong_letter = (wrong_answer_letter or "").strip().upper() or None
 
-    messages: List[dict] = [SYSTEM_MSG, {"role": "user", "content": q_prompt}]
+    messages: List[dict] = [system_msg or SYSTEM_MSG, {"role": "user", "content": q_prompt}]
 
     raw_turns:        List[Optional[str]] = []
     parsed_turns:     List[Optional[str]] = []
@@ -186,7 +188,12 @@ async def run_sycophancy_conversation(
 
     # T1..K — pressure doses, each tagged with its category
     for turn_idx, (ds, cat) in enumerate(zip(dose_statements, dose_categories)):
-        messages.append({"role": "user", "content": build_dose_user_prompt(ds, wrong_answer_text)})
+        if cot_mode:
+            ds_filled = ds.format(wrong_answer=wrong_answer_text) if "{wrong_answer}" in ds else ds
+            dose_content = COT_DOSE_TPL.format(dose_statement=ds_filled)
+        else:
+            dose_content = build_dose_user_prompt(ds, wrong_answer_text)
+        messages.append({"role": "user", "content": dose_content})
         raw, err = await one_call(messages)
         record_turn(raw, err, category=cat)
         messages.append({"role": "assistant", "content": raw_turns[-1] or ""})
@@ -246,6 +253,8 @@ async def run_sycophancy_over_items(
     early_stop_on_wrong: bool            = False,
     show_progress:       bool            = True,
     shuffle_doses:       bool            = False,
+    cot_mode:            bool            = False,
+    system_msg:          Optional[dict]  = None,
 ) -> List[Dict[str, Any]]:
 
     sem = asyncio.Semaphore(concurrency)
@@ -265,9 +274,17 @@ async def run_sycophancy_over_items(
             run_statements, run_categories = zip(*paired)
         else:
             run_statements, run_categories = dose_statements, dose_categories
+        if cot_mode:
+            from config import COT_PROMPT_TEMPLATE
+            options_str = "\n".join(item.get("options") or [])
+            q_prompt = COT_PROMPT_TEMPLATE.format(
+                question=item.get("query", ""), options=options_str
+            )
+        else:
+            q_prompt = item["prompt"]
         res = await run_sycophancy_conversation(
             sem=sem, rg=rg, model=model,
-            q_prompt=item["prompt"],
+            q_prompt=q_prompt,
             query=item.get("query", ""),
             answer=item.get("actual_answer", ""),
             wrong_answer_text=wrong_text,
@@ -280,6 +297,8 @@ async def run_sycophancy_over_items(
             max_retries=max_retries,
             retry_backoff_s=retry_backoff_s,
             early_stop_on_wrong=early_stop_on_wrong,
+            system_msg=system_msg,
+            cot_mode=cot_mode,
         )
         return i, res
 
@@ -311,6 +330,8 @@ async def run_sycophancy_repeated(
     base_seed:          int             = 777,
     bin_idx:            int             = -1,
     shuffle_doses:      bool            = False,
+    cot_mode:           bool            = False,
+    system_msg:         Optional[dict]  = None,
 ) -> List[Dict[str, Any]]:
     """
     Runs the sycophancy experiment n_samples times and aggregates per item.
@@ -353,6 +374,8 @@ async def run_sycophancy_repeated(
             base_seed=base_seed + run_idx,
             shuffle_doses=shuffle_doses,
             early_stop_on_wrong=False,
+            cot_mode=cot_mode,
+            system_msg=system_msg,
         )
         all_runs.append(run_results)
 

@@ -33,6 +33,7 @@ from typing import List
 from dotenv import load_dotenv
 
 from config import (
+    COT_SYSTEM_MSG,
     DEFAULT_BASE_SEED,
     DEFAULT_BIN_STRATEGY,
     DEFAULT_CONCURRENCY,
@@ -41,7 +42,13 @@ from config import (
     DEFAULT_N_SYCO_SAMPLES,
     DEFAULT_TIMEOUT_S,
 )
-from entropy import bin_items_by_entropy, bin_items_by_entropy_and_category
+from entropy import (
+    bin_items_by_entropy,
+    bin_items_by_entropy_and_category,
+    bin_items_by_calibrated_prob,
+    bin_items_by_calibrated_prob_and_category,
+    load_calibration,
+)
 from generator import ResponseGenerator
 from sycophancy import run_sycophancy_repeated
 
@@ -130,7 +137,19 @@ def parse_args() -> argparse.Namespace:
                    ))
     p.add_argument("--stratify_by_category", action="store_true",
                    help="Also run per MMLU-Pro subject category")
+    p.add_argument("--dataset",              type=str,   default="",
+                   help="Dataset subdirectory (e.g. 'aime', 'aime_2025', 'gpqa_diamond'). "
+                        "Leave empty for legacy mmlu_pro path.")
     p.add_argument("--out_dir",              type=str,   default="experiment_out")
+    p.add_argument("--temperature",          type=float, default=None,
+                   help="Sampling temperature (default: model API default)")
+    p.add_argument("--cot",                  action="store_true",
+                   help="Use chain-of-thought prompting (COT_SYSTEM_MSG + COT_PROMPT_TEMPLATE + COT_DOSE_TPL)")
+    p.add_argument("--use_calibrated_prob",  action="store_true",
+                   help="Bin by isotonic-calibrated hardness probability instead of raw entropy. "
+                        "Requires calibrated_prob to be present in the baseline pkl "
+                        "(run run_baseline.py first). Enables cross-model comparison "
+                        "on a fixed [0,1] scale.")
     return p.parse_args()
 
 
@@ -138,7 +157,8 @@ def parse_args() -> argparse.Namespace:
 # Bin runner
 # ---------------------------------------------------------------------------
 
-async def run_bins(entropy_bins, rg, args, out_bin_dir, label_prefix=""):
+async def run_bins(entropy_bins, rg, args, out_bin_dir, label_prefix="",
+                   cot_mode=False, system_msg=None):
     os.makedirs(out_bin_dir, exist_ok=True)
     for bin_idx, items in entropy_bins.items():
         if not items:
@@ -170,6 +190,8 @@ async def run_bins(entropy_bins, rg, args, out_bin_dir, label_prefix=""):
             base_seed=args.base_seed,
             bin_idx=bin_idx,
             shuffle_doses=args.shuffle_doses,
+            cot_mode=cot_mode,
+            system_msg=system_msg,
         )
         out_path = os.path.join(out_bin_dir, f"bin_{bin_idx}_repeated.pkl")
         with open(out_path, "wb") as f:
@@ -185,7 +207,12 @@ async def main() -> None:
     load_dotenv()
     args = parse_args()
 
-    pkl_path = os.path.join(args.out_dir, args.model, "base_experiment_metadata.pkl")
+    base_dir = (
+        os.path.join(args.out_dir, args.model, args.dataset)
+        if args.dataset
+        else os.path.join(args.out_dir, args.model)
+    )
+    pkl_path = os.path.join(base_dir, "base_experiment_metadata.pkl")
     if not os.path.exists(pkl_path):
         raise FileNotFoundError(
             f"Baseline metadata not found at {pkl_path}. Run run_baseline.py first."
@@ -208,27 +235,51 @@ async def main() -> None:
         print(f"\n  Majority-correct questions : {len(majority_correct)} / {len(experiment_metadata_l)}")
         print(f"  All-correct questions      : {len(all_correct)} / {len(experiment_metadata_l)}")
 
-    rg = ResponseGenerator()
+    cot_mode   = args.cot
+    system_msg = COT_SYSTEM_MSG if cot_mode else None
+    bin_subdir = "entropy_bin_cot" if cot_mode else "entropy_bin"
+    if cot_mode:
+        print("CoT mode          : ON (COT_SYSTEM_MSG + COT_PROMPT_TEMPLATE + COT_DOSE_TPL)")
+
+    rg = ResponseGenerator(temperature=args.temperature)
 
     # Global bins
-    entropy_bins, _ = bin_items_by_entropy(
-        experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
-    )
-    global_out = os.path.join(args.out_dir, args.model, "entropy_bin")
-    await run_bins(entropy_bins, rg, args, global_out)
+    if args.use_calibrated_prob:
+        print("Binning by calibrated hardness probability (loaded from calibration.pkl).")
+        regressor = load_calibration(experiment_metadata_l, base_dir)
+        global_bins, _, _ = bin_items_by_calibrated_prob(
+            experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+            regressor=regressor,
+        )
+    else:
+        global_bins, _ = bin_items_by_entropy(
+            experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+        )
+        regressor = None
 
-    # Per MMLU-Pro subject category
+    global_out = os.path.join(base_dir, bin_subdir)
+    await run_bins(global_bins, rg, args, global_out,
+                   cot_mode=cot_mode, system_msg=system_msg)
+
+    # Per-category bins
     if args.stratify_by_category:
         n_missing = sum(1 for it in experiment_metadata_l if "category" not in it)
         if n_missing:
             print(f"\nWARNING: {n_missing} items missing 'category'. Re-run run_baseline.py.")
-        cat_bins = bin_items_by_entropy_and_category(
-            experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
-        )
+        if args.use_calibrated_prob:
+            cat_bins, _ = bin_items_by_calibrated_prob_and_category(
+                experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+                regressor=regressor,
+            )
+        else:
+            cat_bins = bin_items_by_entropy_and_category(
+                experiment_metadata_l, n_bins=args.n_bins, strategy=args.bin_strategy,
+            )
         for cat, bins in sorted(cat_bins.items()):
             safe    = cat.replace(" ", "_").replace("/", "_")
             cat_out = os.path.join(global_out, "by_subject", safe)
-            await run_bins(bins, rg, args, cat_out, label_prefix=f"[{cat}] ")
+            await run_bins(bins, rg, args, cat_out, label_prefix=f"[{cat}] ",
+                           cot_mode=cot_mode, system_msg=system_msg)
 
 
 if __name__ == "__main__":

@@ -20,6 +20,8 @@ import asyncio
 import os
 import pickle
 
+import numpy as np
+
 from dotenv import load_dotenv
 from tqdm.auto import tqdm
 
@@ -30,8 +32,13 @@ from config import (
     DEFAULT_SEED,
     PROMPT_TEMPLATE,
 )
-from data import build_balanced_df
-from entropy import compute_entropy, bin_by_entropy, bin_items_by_entropy_and_category
+from data import build_balanced_df, build_gpqa_diamond_df, build_aime_df, build_aime_2025_df, build_hle_df
+from entropy import (
+    compute_entropy,
+    bin_by_entropy,
+    bin_items_by_entropy_and_category,
+    fit_isotonic_calibration,
+)
 from generator import ResponseGenerator
 
 # ---------------------------------------------------------------------------
@@ -89,7 +96,7 @@ async def run_row_attempts(
     query = row["query"]
     options = row["options"]
     answer = row["answer"]
-    category = row.get("category", "__unknown__")  # NEW
+    category = row.get("category", "__unknown__")
     message = PROMPT_TEMPLATE.format(question=query, options=options)
 
     tasks = [
@@ -166,10 +173,17 @@ async def run_experiment_async(
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Run baseline uncertainty experiment on MMLU-Pro."
+        description="Run baseline uncertainty experiment on MMLU-Pro or GPQA-Diamond."
     )
     p.add_argument(
         "--model", type=str, default="GPT5_4Nano", help="Model key from config.MODELS"
+    )
+    p.add_argument(
+        "--dataset",
+        type=str,
+        default="mmlu_pro",
+        choices=["mmlu_pro", "gpqa_diamond", "aime", "aime_2025", "hle"],
+        help="Dataset to use (default: mmlu_pro)",
     )
     p.add_argument(
         "--n_attempts",
@@ -181,7 +195,7 @@ def parse_args() -> argparse.Namespace:
         "--n_per_cat",
         type=int,
         default=DEFAULT_N_PER_CAT,
-        help="Questions sampled per MMLU-Pro category",
+        help="Questions sampled per category",
     )
     p.add_argument(
         "--seed",
@@ -212,6 +226,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--out_dir", type=str, default="experiment_out", help="Root output directory"
     )
+    p.add_argument(
+        "--temperature", type=float, default=None,
+        help="Sampling temperature (default: model API default)",
+    )
+    p.add_argument(
+        "--extend", action="store_true",
+        help="Append new questions to an existing pkl instead of skipping it",
+    )
     return p.parse_args()
 
 
@@ -219,13 +241,14 @@ async def main() -> None:
     load_dotenv()
     args = parse_args()
 
-    out_path = os.path.join(args.out_dir, args.model)
+    # Dataset-scoped subdirectory so mmlu_pro and gpqa_diamond results don't collide
+    out_path = os.path.join(args.out_dir, args.model, args.dataset)
     os.makedirs(out_path, exist_ok=True)
     pkl_path = os.path.join(out_path, "base_experiment_metadata.pkl")
 
-    response_generator = ResponseGenerator()
+    response_generator = ResponseGenerator(temperature=args.temperature)
 
-    if os.path.exists(pkl_path):
+    if os.path.exists(pkl_path) and not args.extend:
         print(f"Found existing results at {pkl_path}, loading...")
         with open(pkl_path, "rb") as f:
             experiment_metadata_l = pickle.load(f)
@@ -235,7 +258,16 @@ async def main() -> None:
             print(
                 f"  Back-filling 'category' for {n_missing} items — rebuilding dataset to get labels..."
             )
-            balanced_df = build_balanced_df(n_per_cat=args.n_per_cat, seed=args.seed)
+            if args.dataset == "gpqa_diamond":
+                balanced_df = build_gpqa_diamond_df(n_per_cat=args.n_per_cat, seed=args.seed)
+            elif args.dataset == "aime":
+                balanced_df = build_aime_df(n_per_cat=args.n_per_cat, seed=args.seed)
+            elif args.dataset == "aime_2025":
+                balanced_df = build_aime_2025_df(n_per_cat=args.n_per_cat, seed=args.seed)
+            elif args.dataset == "hle":
+                balanced_df = build_hle_df(n_per_cat=args.n_per_cat, seed=args.seed)
+            else:
+                balanced_df = build_balanced_df(n_per_cat=args.n_per_cat, seed=args.seed)
             cat_map = {
                 row["query"]: row["category"] for _, row in balanced_df.iterrows()
             }
@@ -244,11 +276,60 @@ async def main() -> None:
             with open(pkl_path, "wb") as f:
                 pickle.dump(experiment_metadata_l, f)
             print("  Back-fill complete, pickle updated.")
+    elif os.path.exists(pkl_path) and args.extend:
+        print(f"Extend mode: loading existing {pkl_path}...")
+        with open(pkl_path, "rb") as f:
+            experiment_metadata_l = pickle.load(f)
+        seen_queries = {it["query"] for it in experiment_metadata_l}
+        print(f"  Already have {len(seen_queries)} questions.")
+
+        if args.dataset == "gpqa_diamond":
+            full_df = build_gpqa_diamond_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "aime":
+            full_df = build_aime_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "aime_2025":
+            full_df = build_aime_2025_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "hle":
+            full_df = build_hle_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        else:
+            full_df = build_balanced_df(n_per_cat=args.n_per_cat, seed=args.seed)
+
+        new_df = full_df[~full_df["query"].isin(seen_queries)].reset_index(drop=True)
+        print(f"  New questions to run: {len(new_df)} / {len(full_df)} total")
+
+        if len(new_df) == 0:
+            print("  Nothing new to run.")
+        else:
+            print(
+                f"Running {len(new_df)} new questions "
+                f"x {args.n_attempts} attempts each "
+                f"(total API calls: {len(new_df) * args.n_attempts})"
+            )
+            new_results = await run_experiment_async(
+                balanced_df=new_df,
+                response_generator=response_generator,
+                model_name=args.model,
+                n_attempts=args.n_attempts,
+                max_concurrent=args.max_concurrent,
+            )
+            experiment_metadata_l = experiment_metadata_l + new_results
+            with open(pkl_path, "wb") as f:
+                pickle.dump(experiment_metadata_l, f)
+            print(f"Saved -> {pkl_path}  ({len(experiment_metadata_l)} total questions)")
     else:
         print(
-            f"Building balanced dataset ({args.n_per_cat} per category, seed={args.seed})..."
+            f"Building balanced dataset ({args.n_per_cat} per category, seed={args.seed}, dataset={args.dataset})..."
         )
-        balanced_df = build_balanced_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        if args.dataset == "gpqa_diamond":
+            balanced_df = build_gpqa_diamond_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "aime":
+            balanced_df = build_aime_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "aime_2025":
+            balanced_df = build_aime_2025_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        elif args.dataset == "hle":
+            balanced_df = build_hle_df(n_per_cat=args.n_per_cat, seed=args.seed)
+        else:
+            balanced_df = build_balanced_df(n_per_cat=args.n_per_cat, seed=args.seed)
         print(
             f"Running baseline: {len(balanced_df)} questions "
             f"x {args.n_attempts} attempts each "
@@ -280,6 +361,33 @@ async def main() -> None:
             n_bins=args.n_bins,
             strategy=args.bin_strategy,
         )
+
+    # Fit isotonic calibration and save a separate calibration.pkl sidecar.
+    # The baseline pkl is never mutated — calibrated_prob lives only in the sidecar.
+    cal_path = os.path.join(out_path, "calibration.pkl")
+    if not os.path.exists(cal_path):
+        print(f"\n--- Isotonic calibration (entropy → calibrated_prob) ---")
+        regressor = fit_isotonic_calibration(experiment_metadata_l)
+        X = np.array([-item["entropy"] for item in experiment_metadata_l])
+        probs = regressor.predict(X)
+        calibration = {
+            "regressor":     regressor,
+            "query_to_prob": {
+                item["query"]: float(p)
+                for item, p in zip(experiment_metadata_l, probs)
+            },
+            "model":         args.model,
+            "dataset":       args.dataset or "mmlu_pro",
+            "n_items":       len(experiment_metadata_l),
+            "prob_min":      float(probs.min()),
+            "prob_max":      float(probs.max()),
+        }
+        with open(cal_path, "wb") as f:
+            pickle.dump(calibration, f)
+        print(f"  Saved -> {cal_path}")
+        print(f"  prob_range=[{probs.min():.4f}, {probs.max():.4f}]")
+    else:
+        print(f"\n--- Calibration sidecar already exists at {cal_path}, skipping. ---")
 
 
 if __name__ == "__main__":

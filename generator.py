@@ -32,6 +32,9 @@ def extract_letter(resp_text: str) -> Optional[str]:
 class ResponseGenerator:
     """Wraps LiteLLM completions with support for both Ollama and cloud models."""
 
+    def __init__(self, temperature: Optional[float] = None) -> None:
+        self.temperature = temperature
+
     def form_messages(self, prompt: str) -> List[dict]:
         return [{"role": "user", "content": prompt}]
 
@@ -116,6 +119,8 @@ class ResponseGenerator:
             "model": MODELS[model],
             "messages": messages,
         }
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
         if model in OLLAMA_MODELS:
             kwargs["api_base"] = OLLAMA_API_BASE
         return completion(**kwargs).choices[0].message.content
@@ -128,6 +133,8 @@ class ResponseGenerator:
             "messages": messages,
             "seed": 42,
         }
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
         if model in OLLAMA_MODELS:
             kwargs["api_base"] = OLLAMA_API_BASE
             kwargs["timeout"] = 10000
@@ -146,6 +153,8 @@ class ResponseGenerator:
             "messages": messages,
             "seed": seed,
         }
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
         if model in OLLAMA_MODELS:
             kwargs["api_base"] = OLLAMA_API_BASE
         if timeout_s is not None:
