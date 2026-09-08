@@ -1,110 +1,101 @@
-# Sycophancy Dosage-Response Experiment
+# When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation
 
-Measures whether LLM sycophancy susceptibility is moderated by
-per-question uncertainty, estimated via entropy over repeated samples.
+Code and analysis for a study of LLM sycophancy under adversarial social
+pressure (disagreement, false certainty, social proof, expert authority,
+accusation, crowd consensus), and whether a model's own per-question
+uncertainty — estimated from response entropy over repeated sampling —
+predicts when it folds. Five models (Claude Haiku/Sonnet, GPT-5.4/Mini/Nano,
+Gemini 3.5 Flash) across three benchmarks (MMLU-Pro, GPQA-Diamond, HLE).
 
-## Project structure
+The manuscript itself lives in [`paper/`](paper/) (managed via Overleaf,
+tracked here as the exported source zip) — see
+[`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the full paper-artifact →
+producing-script mapping.
+
+## Layout
 
 ```
-config.py              — Model registry, prompt templates, all defaults
-data.py                — MMLU-Pro loading and balanced sampling
-generator.py           — ResponseGenerator (LiteLLM async wrapper)
-entropy.py             — Entropy computation and KBins-based binning
-sycophancy.py          — Conversation runner and repeated-sample aggregator
-sycophancy_dosage.py   — Pressure turn templates (T1-T6)
-
-run_baseline.py        — CLI: baseline uncertainty experiment
-run_sycophancy.py      — CLI: entropy-binned sycophancy experiment
-
-run_baseline.sh        — Shell wrapper for run_baseline.py
-run_sycophancy.sh      — Shell wrapper for run_sycophancy.py
-run_all.sh             — End-to-end: baseline -> sycophancy -> zip
-package_results.sh     — Zip experiment_out/<MODEL>/ into results_<MODEL>.zip
-
-requirements.txt
+src/sycophancy/   installable library: config, dataset loading, the LiteLLM
+                  generator wrapper, entropy/calibration math, the
+                  multi-turn conversation runner, the shared analysis-df
+                  builder — every script imports from here
+scripts/          CLIs that call model APIs and run experiments (baseline
+                  sampling, calibration, pressure runs, CoT reasoning,
+                  ensemble calibration), plus shell wrappers around them
+analysis/         post-hoc analysis: no API calls, reads experiment_out/
+                  and produces the paper's tables, figures, and stats
+notebooks/        exploratory notebooks
+tests/            unit tests (pytest)
+paper/            the manuscript source zip
+figures/          canonical regenerated PDF figures
+legacy/           superseded scripts/data, kept for reference only
+experiment_out/   raw + derived experiment data (gitignored; see below)
 ```
 
 ## Setup
 
 ```bash
-uv sync
-cp .env.example .env
+uv sync                 # installs deps + src/sycophancy itself, editable
+cp .env.example .env    # fill in your API keys
 ```
 
-`.env` should contain:
-```
-OPENAI_API_KEY=...
-ANTHROPIC_API_KEY=...
-```
+`.env` needs `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `GOOGLE_API_KEY`.
 
-## Running
+## Running the pipeline
 
-### Full pipeline (recommended)
+All commands assume the repo root as the working directory (paths like
+`experiment_out/` are resolved relative to it).
+
 ```bash
-bash run_all.sh --model GPT5_4Nano --n_attempts 10 --n_per_cat 30 --n_syco_samples 5 --n_bins 5 --bin_strategy quantile
+# Full pipeline for one model, end to end
+bash scripts/run_all.sh --model GPT5_4Nano
 
-bash run_all.sh
-bash run_all.sh --model ClaudeSonnet
-bash run_all.sh --model llama3 --bin_strategy uniform
+# Or step by step:
+bash scripts/run_baseline.sh   --model GPT5_4Nano   # 1. entropy sampling
+bash scripts/run_sycophancy.sh --model GPT5_4Nano   # 2. pressure runs
+bash scripts/package_results.sh --model GPT5_4Nano  # 3. zip results
+
+# Everything (baseline -> sycophancy -> CoT reasoning -> package), with an
+# up-front dependency sync and .env check:
+bash scripts/setup_and_run.sh --model ClaudeSonnet
 ```
 
-### Step by step
+Each experiment writes to `experiment_out/<MODEL>/<DATASET>/...` (not
+tracked in git — see `.gitignore`; `experiment_out_snapshot.tar.zst` is a
+local point-in-time snapshot, not committed either). From there:
+
 ```bash
-# 1. Baseline — sample each question N times, compute uncertainty + entropy
-bash run_baseline.sh \
-    --model GPT5_4Nano \
-    --n_attempts 10 \
-    --n_per_cat 30 \
-    --seed 42 \
-    --max_concurrent 10 \
-    --n_bins 5 \
-    --bin_strategy quantile
+# Isotonic calibration (hardness map) — batches over every model under experiment_out/
+uv run python scripts/run_calibration.py
 
-# 2. Sycophancy — run pressure experiment per entropy bin
-bash run_sycophancy.sh \
-    --model GPT5_4Nano \
-    --n_syco_samples 5 \
-    --concurrency 5 \
-    --timeout_s 120 \
-    --base_seed 777 \
-    --n_bins 5 \
-    --bin_strategy quantile
+# Externally-calibrated CoT reasoning (RQ4) — --extend adds only the
+# missing questions to an existing run, rather than re-paying for coverage
+# you already have
+uv run python scripts/run_reasoning_calibrated.py --model ClaudeSonnet --extend
 
-# 3. Package results
-bash package_results.sh --model GPT5_4Nano
+# Ensemble calibration (ECE)
+uv run python scripts/run_ensemble_calibration.py --model GPT5_4Nano
 ```
 
-## Outputs
+Regenerating the paper's tables/figures from `experiment_out/`:
 
-```
-experiment_out/
-└── <MODEL>/
-    ├── base_experiment_metadata.pkl    # list of per-question dicts with
-    │                                   # answers_generated, uncertainty, entropy, …
-    └── entropy_bin/
-        ├── bin_0_repeated.pkl          # aggregated sycophancy results for bin 0
-        ├── bin_1_repeated.pkl          # …
-        ├── bin_2_repeated.pkl
-        ├── bin_3_repeated.pkl
-        └── bin_4_repeated.pkl
-
-results_<MODEL>.zip                     # produced by package_results.sh
+```bash
+uv run python analysis/run_rq_analysis_v2.py               # RQ1-RQ4 figures + stats
+uv run python analysis/run_combined_datasets_analysis.py   # cross-dataset comparisons
+uv run python analysis/hierarchical_analysis.py --data analysis/flip_data_mmlu.csv
+uv run python analysis/calibration_analysis.py --model all
 ```
 
-Each `bin_N_repeated.pkl` is a list of dicts with:
+See [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for exactly which script
+produced every table and figure number in the paper, and for the
+GPQA-Diamond coverage-backfill procedure used for the Claude models.
 
-| Field | Description |
-|---|---|
-| `query` | Question text |
-| `gold_answer` | Correct option letter |
-| `first_wrong_turn_per_run` | List of first-flip turn per run (never = n_doses+1) |
-| `flip_rate` | Fraction of runs where model flipped |
-| `max_fwt` | Max first-wrong-turn across runs |
-| `median_fwt` | Median first-wrong-turn |
-| `mean_fwt` | Mean first-wrong-turn |
-| `raw_runs` | Full per-turn details for every run |
+## Tests
 
-## Dose statements
+```bash
+uv run pytest
+```
 
-Experiment with `sycophancy_dosage.py` to replace T1-T6 with other pressure templates.
+## License
 
+MIT — see [`LICENSE`](LICENSE).

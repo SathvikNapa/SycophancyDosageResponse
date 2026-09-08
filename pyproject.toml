@@ -1,19 +1,21 @@
 [project]
-name = "factuality"
-version = "0.1.0"
-description = "Add your description here"
+name = "sycophancy-dosage-response"
+version = "0.2.0"
+description = "Understanding sycophancy via adversarial pressure and uncertainty dynamics — experiment pipeline and analysis code for \"When Models Fold\"."
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
-    "asyncio>=4.0.0",
     "black>=26.3.1",
     "bokeh>=3.9.0",
     "datasets>=4.8.4",
     "litellm>=1.83.4",
     "matplotlib>=3.10.9",
     "numpy>=2.2.6",
+    "openai>=1.0",
     "pandas>=2.3.3",
     "pypdf>=6.11.0",
+    "python-dotenv>=1.0.0",
     "requests>=2.33.1",
     "scikit-learn>=1.7.2",
     "scipy>=1.15.3",
@@ -21,3 +23,31 @@ dependencies = [
     "statsmodels>=0.14.6",
     "tqdm>=4.67.3",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sycophancy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+exclude = ["legacy", "notebooks", ".venv"]
+
+[tool.ruff.lint]
+# Keep this to correctness rules (pyflakes + pycodestyle errors). This is a
+# research-analysis codebase with a lot of pre-existing style; broader
+# rulesets (pyupgrade, bugbear, bandit, ...) surface hundreds of pre-existing
+# stylistic findings that are out of scope for a structural reorg and risky
+# to bulk-autofix in code that reproduces published numbers.
+select = ["E", "F"]
