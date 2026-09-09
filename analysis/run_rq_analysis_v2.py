@@ -49,6 +49,11 @@ HARDNESS_BINS   = [("Easy",   0.0, 1/3),
 HARDNESS_COLORS = {"Easy": "#22C55E", "Medium": "#F59E0B", "Hard": "#EF4444"}
 
 plt.rcParams.update({
+    # Embed text as real (TrueType) fonts, not matplotlib's PDF-backend
+    # default Type 3 — Type 3 glyphs are vector but most PDF viewers won't
+    # let you select/copy the text, which reads as "these are images".
+    "pdf.fonttype":     42,
+    "ps.fonttype":      42,
     "font.family":      "sans-serif",
     "font.size":        16,
     "axes.spines.top":  False,

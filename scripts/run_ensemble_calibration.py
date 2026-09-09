@@ -53,6 +53,10 @@ import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 
+# TrueType, not the PDF-backend's default Type 3 (vector but not
+# selectable/copyable text in most viewers).
+plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42})
+
 from sycophancy.reasoning_uncertainty import UncertaintyTrajectory
 
 # ---------------------------------------------------------------------------

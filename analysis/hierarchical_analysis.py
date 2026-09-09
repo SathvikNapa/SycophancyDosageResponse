@@ -128,6 +128,10 @@ import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
 
+# TrueType, not the PDF-backend's default Type 3 (vector but not
+# selectable/copyable text in most viewers).
+plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42})
+
 warnings.filterwarnings("ignore")
 
 PYTHON = "python3"  # adjust if needed
