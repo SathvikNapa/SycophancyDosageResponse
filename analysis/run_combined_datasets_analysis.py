@@ -59,6 +59,9 @@ DS_LS      = {"mmlu_pro": "-", "gpqa_diamond": "--"}
 DS_LABEL   = {"mmlu_pro": "MMLU-Pro", "gpqa_diamond": "GPQA-Diamond"}
 
 plt.rcParams.update({
+    # TrueType, not the PDF-backend's default Type 3 (vector but not
+    # selectable/copyable text in most viewers).
+    "pdf.fonttype": 42, "ps.fonttype": 42,
     "font.family": "sans-serif", "font.size": 10,
     "axes.spines.top": False, "axes.spines.right": False,
     "axes.titlesize": 11, "axes.labelsize": 10,
