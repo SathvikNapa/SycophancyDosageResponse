@@ -3,19 +3,19 @@
 Code and analysis for a study of LLM sycophancy under adversarial social
 pressure (disagreement, false certainty, social proof, expert authority,
 accusation, crowd consensus), and whether a model's own per-question
-uncertainty — estimated from response entropy over repeated sampling —
+uncertainty (estimated from response entropy over repeated sampling)
 predicts when it folds. Five models (Claude Haiku/Sonnet, GPT-5.4/Mini/Nano,
 Gemini 3.5 Flash) across three benchmarks (MMLU-Pro, GPQA-Diamond, HLE).
 
 The manuscript itself lives in [`paper/`](paper/) (managed via Overleaf,
-tracked here as the exported source zip) — see
+tracked here as the exported source zip); see
 [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the full paper-artifact →
 producing-script mapping. An anonymized project page (for double-blind
 review) lives in [`docs/`](docs/index.html).
 
 ## Results
 
-Grounded findings — what's significant, what's model-specific, and what
+Grounded findings: what's significant, what's model-specific, and what
 isn't, rather than one pooled headline number. Full discussion and every
 other figure/table is in the paper.
 
@@ -23,7 +23,7 @@ other figure/table is in the paper.
 model-specific effect.** Questions that induce disagreement across
 repeated sampling flip at roughly twice the rate of unanimous questions.
 The pressure×uncertainty interaction is individually significant for
-Claude Sonnet, but not for the other four models on their own — a
+Claude Sonnet, but not for the other four models on their own; a
 random-effects meta-analysis is what recovers a significant *pooled*
 effect across models:
 
@@ -39,7 +39,7 @@ MMLU-Pro and GPQA-Diamond rather than being an artifact of one dataset:
 
 **Models get more confidently wrong, not less confident.** Under
 chain-of-thought reasoning, majority-correct rate falls turn over turn
-while calibrated confidence stays roughly flat — so the confidence-vs-
+while calibrated confidence stays roughly flat, so the confidence-vs-
 correctness gap widens under pressure, and ensemble calibration error
 (ECE) rises for every model tested:
 
@@ -52,7 +52,7 @@ correctness gap widens under pressure, and ensemble calibration error
 src/sycophancy/   installable library: config, dataset loading, the LiteLLM
                   generator wrapper, entropy/calibration math, the
                   multi-turn conversation runner, the shared analysis-df
-                  builder — every script imports from here
+                  builder (every script imports from here)
 scripts/          CLIs that call model APIs and run experiments (baseline
                   sampling, calibration, pressure runs, CoT reasoning,
                   ensemble calibration), plus shell wrappers around them
@@ -95,14 +95,14 @@ bash scripts/setup_and_run.sh --model ClaudeSonnet
 ```
 
 Each experiment writes to `experiment_out/<MODEL>/<DATASET>/...` (not
-tracked in git — see `.gitignore`; `experiment_out_snapshot.tar.zst` is a
+tracked in git, see `.gitignore`; `experiment_out_snapshot.tar.zst` is a
 local point-in-time snapshot, not committed either). From there:
 
 ```bash
-# Isotonic calibration (hardness map) — batches over every model under experiment_out/
+# Isotonic calibration (hardness map): batches over every model under experiment_out/
 uv run python scripts/run_calibration.py
 
-# Externally-calibrated CoT reasoning (RQ4) — --extend adds only the
+# Externally-calibrated CoT reasoning (RQ4): --extend adds only the
 # missing questions to an existing run, rather than re-paying for coverage
 # you already have
 uv run python scripts/run_reasoning_calibrated.py --model ClaudeSonnet --extend
@@ -132,4 +132,4 @@ uv run pytest
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT, see [`LICENSE`](LICENSE).

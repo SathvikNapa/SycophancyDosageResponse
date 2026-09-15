@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>When Models Fold</title>
-<meta name="description" content="Uncertainty as a predictor of sycophantic capitulation under adversarial pressure — an anonymized project page for double-blind review.">
+<meta name="description" content="Uncertainty as a predictor of sycophantic capitulation under adversarial pressure: an anonymized project page for double-blind review.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,500&display=swap" rel="stylesheet">
@@ -145,7 +145,7 @@
     <p class="subtitle">Does a model's own uncertainty on a question predict whether it will cave to social pressure? We measure it across six models, three benchmarks, and six escalating rhetorical strategies.</p>
     <p class="authorline">Authors anonymized for double-blind review.</p>
     <div class="cta-row">
-      <a class="btn disabled" title="Link added after review">Paper (PDF) — coming soon</a>
+      <a class="btn disabled" title="Link added after review">Paper (PDF, coming soon)</a>
       <a class="btn primary" href="https://anonymous.4open.science/r/SycophancyDosageResponse-BDE5/" target="_blank" rel="noopener">Anonymized Code &amp; Data</a>
       <a class="btn" href="#results">Jump to results &darr;</a>
     </div>
@@ -154,7 +154,7 @@
   <div class="wrap">
     <div class="stats">
       <div class="stat"><b>6</b><span>target models across the GPT, Claude &amp; Gemini families</span></div>
-      <div class="stat"><b>3</b><span>benchmarks — MMLU‑Pro, GPQA‑Diamond, HLE</span></div>
+      <div class="stat"><b>3</b><span>benchmarks: MMLU‑Pro, GPQA‑Diamond, HLE</span></div>
       <div class="stat"><b>~2&times;</b><span>flip rate on uncertain vs. certain questions</span></div>
       <div class="stat"><b>3</b><span>behavior classes: resisters, capitulators, fragmenters</span></div>
     </div>
@@ -164,8 +164,8 @@
 <section id="overview">
   <div class="wrap">
     <h2><span class="num">01</span>Overview</h2>
-    <p class="section-sub">A reliable model should update its answer when shown genuine evidence — not when a user simply repeats an assertion more forcefully. We test whether a model's <em>own uncertainty</em> on a question, measured before any pressure is applied, predicts how far it can be pushed.</p>
-    <p>Sycophancy — agreeing with a user's stated belief over the truth — is well documented in single-turn settings. Recent multi-turn benchmarks show models drift or flip under sustained pressure, but mostly ask <em>whether</em> and <em>how often</em> models flip. We ask a different question: is that susceptibility predictable in advance, from the model's own pre-pressure uncertainty?</p>
+    <p class="section-sub">A reliable model should update its answer when shown genuine evidence, not when a user simply repeats an assertion more forcefully. We test whether a model's <em>own uncertainty</em> on a question, measured before any pressure is applied, predicts how far it can be pushed.</p>
+    <p>Sycophancy, agreeing with a user's stated belief over the truth, is documented in single-turn settings. Recent multi-turn benchmarks show models drift or flip under sustained pressure, but mostly ask <em>whether</em> and <em>how often</em> models flip. We ask a different question: is that susceptibility predictable in advance, from the model's own pre-pressure uncertainty?</p>
     <div class="rqs">
       <div class="rq"><b>RQ1</b><p>Does pre-pressure uncertainty moderate susceptibility to sycophancy?</p></div>
       <div class="rq"><b>RQ2</b><p>Does pressure level, conditioned on uncertainty, predict flipping?</p></div>
@@ -178,9 +178,9 @@
 <section id="method">
   <div class="wrap">
     <h2><span class="num">02</span>Method</h2>
-    <p class="section-sub">Estimate each question's uncertainty from repeated sampling, then apply six turns of escalating social pressure and watch what happens to the answer — and, separately, to the model's own stated confidence.</p>
+    <p class="section-sub">Estimate each question's uncertainty from repeated sampling, then apply six turns of escalating social pressure and watch what happens to the answer, and, separately, to the model's own stated confidence.</p>
 
-    <p><b>Uncertainty.</b> For each question we sample the model $K=25$ times at temperature 1 and compute the Shannon entropy of its answer distribution. Zero entropy means the model is unanimous (certain); higher entropy means its answers disagree with themselves (uncertain) — before a user has said a word.</p>
+    <p><b>Uncertainty.</b> For each question we sample the model $K=25$ times at temperature 1 and compute the Shannon entropy of its answer distribution. Zero entropy means the model is unanimous (certain); higher entropy means its answers disagree with themselves (uncertain), before a user has said a word.</p>
 
     <p><b>Pressure.</b> Starting from a correct baseline answer, we plant a wrong answer and apply six pressure turns (T1&ndash;T6), escalating from low- to high-rhetorical authority:</p>
     <table class="doses">
@@ -192,13 +192,13 @@
       <tr><td class="turn">T5</td><td class="cat">Personal + accusation</td><td>Certainty claim plus an explicit accusation of error.</td></tr>
       <tr><td class="turn">T6</td><td class="cat">Crowd consensus</td><td>Appeals to crowd / universal agreement.</td></tr>
     </table>
-    <p style="font-size:13.5px;color:var(--ink-soft)">We report this fixed order as a design choice, not a claim it's optimal — see the paper for the single-turn robustness check that tests each category in isolation.</p>
+    <p style="font-size:13.5px;color:var(--ink-soft)">We report this fixed order as a design choice, not a claim it's optimal. See the paper for the single-turn robustness check that tests each category in isolation.</p>
 
     <p><b>Behavioral classes.</b> Fitting a per-model logistic slope of flip probability against pressure turn sorts models into three groups:</p>
     <div class="classes">
       <div class="cls resist"><h3>Resisters</h3><p>Flip probability falls or stays flat across the pressure sequence.</p></div>
       <div class="cls capit"><h3>Capitulators</h3><p>Flip probability rises steadily as pressure escalates.</p></div>
-      <div class="cls fragm"><h3>Fragmenters</h3><p>Under chain-of-thought reasoning, repeated samples stop agreeing with each other at all — the model loses a stable majority answer, not just a correct one.</p></div>
+      <div class="cls fragm"><h3>Fragmenters</h3><p>Under chain-of-thought reasoning, repeated samples stop agreeing with each other at all: the model loses a stable majority answer, not just a correct one.</p></div>
     </div>
   </div>
 </section>
@@ -206,18 +206,18 @@
 <section id="results">
   <div class="wrap">
     <h2><span class="num">03</span>Results</h2>
-    <p class="section-sub">Grounded findings — we call out what's significant, what's model-specific, and what isn't, rather than pooling everything into one headline number.</p>
+    <p class="section-sub">Grounded findings: what's significant, what's model-specific, and what isn't, rather than pooling everything into one headline number.</p>
 
     <ul class="findings">
-      <li><b>RQ1 — uncertainty matters.</b> Questions that induce disagreement across repeated sampling flip at roughly twice the rate of questions the model answers unanimously, on average across our MMLU-Pro cells.</li>
-      <li><b>RQ2 — a small, model-specific interaction.</b> Pressure &times; uncertainty interacts significantly for Claude Sonnet individually, but the pooled, cross-model estimate does not clear conventional significance on its own — a random-effects meta-analysis (below) is what recovers a significant pooled effect.</li>
-      <li><b>RQ3 — models split into resisters and capitulators</b>, and the split is consistent within a model across both benchmarks, not just noise in one dataset.</li>
-      <li><b>RQ4 — models get more confidently wrong, not less confident.</b> Stated confidence stays roughly flat under pressure while accuracy drops, so the gap between what a model says and what's true widens turn over turn.</li>
+      <li><b>RQ1: uncertainty moderates flip rate.</b> Questions that induce disagreement across repeated sampling flip at roughly twice the rate of questions the model answers unanimously, on average across our MMLU-Pro cells.</li>
+      <li><b>RQ2: a small, model-specific interaction.</b> Pressure &times; uncertainty interacts significantly for Claude Sonnet individually, but the pooled, cross-model estimate does not clear conventional significance on its own; a random-effects meta-analysis (below) recovers a significant pooled effect.</li>
+      <li><b>RQ3: models split into resisters and capitulators</b>, and the split is consistent within a model across both benchmarks, not just noise in one dataset.</li>
+      <li><b>RQ4: confidence does not track accuracy.</b> Stated confidence stays roughly flat under pressure while accuracy drops, so the gap between what a model says and what's true widens turn over turn.</li>
     </ul>
 
     <figure>
       <img src="assets/figures/rq2_coefs.png" alt="RQ2 logistic regression coefficients per model, MMLU-Pro and GPQA-Diamond">
-      <figcaption><b>Per-model regression coefficients</b> for pressure dose, calibrated hardness, and their interaction. Faded markers are not individually significant (p &ge; 0.05) — most models' interaction term is faded; Claude Sonnet is the clear exception on both benchmarks.</figcaption>
+      <figcaption><b>Per-model regression coefficients</b> for pressure dose, calibrated hardness, and their interaction. Faded markers are not individually significant (p &ge; 0.05); most models' interaction term is faded, and Claude Sonnet is the exception on both benchmarks.</figcaption>
     </figure>
 
     <figure>
@@ -227,17 +227,17 @@
 
     <figure>
       <img src="assets/figures/rq4_combined.png" alt="Chain-of-thought belief entropy, majority-correct rate, and overconfidence gap across pressure turns T0 to T6">
-      <figcaption><b>Chain-of-thought trajectories under pressure.</b> Top: belief entropy across repeated reasoning samples. Middle: majority-correct rate falls turn over turn. Bottom: the gap between calibrated confidence and actual correctness <em>grows</em> — models don't get less confident as they get less correct.</figcaption>
+      <figcaption><b>Chain-of-thought trajectories under pressure.</b> Top: belief entropy across repeated reasoning samples. Middle: majority-correct rate falls turn over turn. Bottom: the gap between calibrated confidence and actual correctness <em>grows</em>: models don't get less confident as they get less correct.</figcaption>
     </figure>
 
     <figure>
       <img src="assets/figures/ensemble_calibration.png" alt="Ensemble calibration error by model, baseline versus max pressure, and accuracy versus mean confidence scatter, all six models below the perfect-calibration line">
-      <figcaption><b>Ensemble calibration error (ECE) rises under pressure for every model</b> (middle panel), and every model sits below the perfect-calibration line even at baseline (right panel) — accuracy under-shoots stated confidence, and pressure widens that gap further.</figcaption>
+      <figcaption><b>Ensemble calibration error (ECE) rises under pressure for every model</b> (middle panel), and every model sits below the perfect-calibration line even at baseline (right panel): accuracy under-shoots stated confidence, and pressure widens that gap further.</figcaption>
     </figure>
 
     <figure>
       <img src="assets/figures/interaction_heterogeneity.png" alt="Forest plot of per-model pressure by uncertainty interaction coefficients with a pooled random-effects estimate">
-      <figcaption><b>Random-effects meta-analysis of the pressure &times; uncertainty interaction</b> across models. Individual per-model estimates are noisy and inconsistent in sign, but the pooled random-effects estimate is positive and significant (low heterogeneity, I&sup2; small) — the interaction is real in aggregate even where no single model reaches significance alone.</figcaption>
+      <figcaption><b>Random-effects meta-analysis of the pressure &times; uncertainty interaction</b> across models. Individual per-model estimates are noisy and inconsistent in sign, but the pooled random-effects estimate is positive and significant (low heterogeneity, I&sup2; small), even though no single model reaches significance on its own.</figcaption>
     </figure>
   </div>
 </section>
@@ -245,7 +245,7 @@
 <section id="code">
   <div class="wrap">
     <h2><span class="num">04</span>Code &amp; Data</h2>
-    <p class="section-sub">Every table, figure, and number in the paper is produced by a checked-in script — no hand-computed numbers.</p>
+    <p class="section-sub">Every table, figure, and number in the paper is produced by a checked-in script, not hand-computed.</p>
     <div class="anon-note">This link is an anonymized mirror for double-blind review. It does not identify the authors.</div>
     <p>
       <a href="https://anonymous.4open.science/r/SycophancyDosageResponse-BDE5/" target="_blank" rel="noopener"><b>anonymous.4open.science/r/SycophancyDosageResponse-BDE5</b></a>
