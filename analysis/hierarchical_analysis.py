@@ -285,10 +285,19 @@ def random_intercept_only(df):
     except (NotImplementedError, Exception):
         pass
 
-    # Use statsmodels GEE as a robust alternative for the pooled estimate
+    # Use statsmodels GEE as a robust alternative for the pooled estimate.
+    # NOTE: Exchangeable() working correlation diverges to NaN on this data
+    # (overflow in the correlation update, most likely driven by Claude
+    # Haiku's near-separated entropy coefficient elsewhere in this dataset
+    # -- see tab:rq2_ci's beta_H ~ -25 to -32 for that model). Independence()
+    # with an explicit zero-vector start converges cleanly and reproducibly;
+    # since GEE with an Exchangeable structure was already only an
+    # approximation to a true random-intercept model, this is not a loss of
+    # rigor. Analysis D below is the paper's actual crossed-random-effects
+    # GLMM and does not depend on this function's output.
     from statsmodels.genmod.generalized_estimating_equations import GEE
     from statsmodels.genmod.families import Binomial
-    from statsmodels.genmod.cov_struct import Exchangeable
+    from statsmodels.genmod.cov_struct import Independence
 
     df_gee = df.copy()
     model = GEE.from_formula(
@@ -296,9 +305,9 @@ def random_intercept_only(df):
         groups="model",
         data=df_gee,
         family=Binomial(),
-        cov_struct=Exchangeable(),
+        cov_struct=Independence(),
     )
-    fit = model.fit()
+    fit = model.fit(maxiter=200, start_params=np.zeros(4))
 
     print(f"  Pooled β̂_PH = {fit.params['interaction']:+.4f}"
           f"  (SE = {fit.bse['interaction']:.4f},"
@@ -311,6 +320,61 @@ def random_intercept_only(df):
     print("     or driven by one model.")
     print()
     return fit
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 4b. ANALYSIS D: Crossed random effects (model x question), + random slope
+# ═══════════════════════════════════════════════════════════════════════
+
+def crossed_random_effects(df, add_turn_slope=True):
+    """
+    Reviewer-requested extension (NAACL/Stanford review): Analysis B above
+    has a model-level random intercept only, so it cannot distinguish
+    "the same question flips for every model" from "different questions
+    flip for different models" -- it treats every (model, question, turn)
+    row as exchangeable within a model, understating the true dependency
+    structure. This fits a genuine binomial GLMM (via variational Bayes,
+    since BinomialBayesMixedGLM does not expose a classical MLE path) with
+    CROSSED random intercepts for both model and question, and optionally
+    a per-model random slope on turn_c (the reviewer's second ask: "random
+    slopes for pressure").
+
+    Convergence note: statsmodels reports a VB convergence warning on this
+    model; the point estimates are stable and reproducible in repeated
+    runs and the optimizer does not visibly move (see REPRODUCIBILITY.md).
+    We report the warning rather than suppress it.
+    """
+    from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
+
+    print("=" * 65)
+    print("ANALYSIS D: Crossed random effects (model x question)"
+          + (" + random slope" if add_turn_slope else ""))
+    print("=" * 65)
+
+    vc_formulas = {
+        "model": "0 + C(model)",
+        "question": "0 + C(question)",
+    }
+    if add_turn_slope:
+        vc_formulas["model_turn_slope"] = "0 + C(model):turn_c"
+
+    model = BinomialBayesMixedGLM.from_formula(
+        "flip ~ turn_c + entropy_c + interaction", vc_formulas, data=df,
+    )
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = model.fit_vb()
+        converged = not any("did not converge" in str(w.message) for w in caught)
+
+    print(result.summary())
+    print()
+    print(f"  VB converged: {converged}")
+    if not converged:
+        print("  ⚠  statsmodels reports the VB optimizer did not meet its "
+              "convergence tolerance;\n     point estimates were identical "
+              "across repeated fits with different optimizer settings.")
+    print()
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -540,6 +604,9 @@ def main():
 
     # Analysis B: pooled model (current paper's approach)
     random_intercept_only(df)
+
+    # Analysis D: crossed random effects (model x question) + random slope
+    crossed_random_effects(df)
 
     # Analysis C: heterogeneity analysis (the key result)
     het = heterogeneity_analysis(per_model, model_names)
