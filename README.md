@@ -8,6 +8,7 @@ predicts when it folds. Five models (Claude Haiku/Sonnet, GPT-5.4/Mini/Nano,
 Gemini 3.5 Flash) across three benchmarks (MMLU-Pro, GPQA-Diamond, HLE).
 
 **Webpage:** [When Models Fold Webpage](https://sathviknapa.github.io/SycophancyDosageResponse/#results)
+
 [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the full paper-artifact →
 producing-script mapping. An anonymized project page (for double-blind
 review) lives in [`docs/`](docs/index.html).
