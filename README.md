@@ -10,7 +10,41 @@ Gemini 3.5 Flash) across three benchmarks (MMLU-Pro, GPQA-Diamond, HLE).
 The manuscript itself lives in [`paper/`](paper/) (managed via Overleaf,
 tracked here as the exported source zip) — see
 [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the full paper-artifact →
-producing-script mapping.
+producing-script mapping. An anonymized project page (for double-blind
+review) lives in [`docs/`](docs/index.html).
+
+## Results
+
+Grounded findings — what's significant, what's model-specific, and what
+isn't, rather than one pooled headline number. Full discussion and every
+other figure/table is in the paper.
+
+**Uncertainty predicts flips; pressure×uncertainty is a small, mostly
+model-specific effect.** Questions that induce disagreement across
+repeated sampling flip at roughly twice the rate of unanimous questions.
+The pressure×uncertainty interaction is individually significant for
+Claude Sonnet, but not for the other four models on their own — a
+random-effects meta-analysis is what recovers a significant *pooled*
+effect across models:
+
+<img src="docs/assets/figures/rq2_coefs.png" width="700" alt="RQ2 per-model regression coefficients">
+<img src="docs/assets/figures/interaction_heterogeneity.png" width="700" alt="Random-effects meta-analysis of the pressure by uncertainty interaction">
+
+**Models split into resisters and capitulators, consistently across
+benchmarks.** Flip rate under escalating pressure (T1–T6) either falls
+(resister) or rises (capitulator) per model, and that split holds on both
+MMLU-Pro and GPQA-Diamond rather than being an artifact of one dataset:
+
+<img src="docs/assets/figures/rq3_combined.png" width="700" alt="Flip rate across pressure turns T1-T6, resisters vs capitulators">
+
+**Models get more confidently wrong, not less confident.** Under
+chain-of-thought reasoning, majority-correct rate falls turn over turn
+while calibrated confidence stays roughly flat — so the confidence-vs-
+correctness gap widens under pressure, and ensemble calibration error
+(ECE) rises for every model tested:
+
+<img src="docs/assets/figures/rq4_combined.png" width="700" alt="Chain-of-thought belief entropy, majority-correct rate, and overconfidence gap under pressure">
+<img src="docs/assets/figures/ensemble_calibration.png" width="700" alt="Ensemble calibration error by model, baseline vs max pressure">
 
 ## Layout
 

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When Models Fold</title>
+<meta name="description" content="Uncertainty as a predictor of sycophantic capitulation under adversarial pressure — an anonymized project page for double-blind review.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d21; --ink-soft:#52585f; --line:#e6e4df; --paper:#fdfcfa;
+    --panel:#f6f4f0; --accent:#a0432e; --accent-soft:#f1e4de;
+    --resist:#3f7d5c; --capit:#a0432e; --fragm:#7a6ea6;
+    --maxw:920px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  h1,h2,h3{font-family:Newsreader,Georgia,serif; font-weight:500; letter-spacing:-0.01em; color:var(--ink)}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+
+  /* ---- nav ---- */
+  nav{
+    position:sticky; top:0; z-index:20; background:rgba(253,252,250,0.92);
+    backdrop-filter:blur(6px); border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; gap:16px}
+  nav .brand{font-weight:700; font-size:14px; letter-spacing:0.02em; white-space:nowrap}
+  nav .brand span{color:var(--accent)}
+  nav ul{display:flex; gap:22px; list-style:none; margin:0; padding:0; flex-wrap:wrap}
+  nav a{color:var(--ink-soft); font-size:14px; font-weight:500}
+  nav a:hover{color:var(--accent); text-decoration:none}
+  .anon-badge{
+    font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase;
+    color:var(--accent); border:1px solid var(--accent-soft); background:var(--accent-soft);
+    border-radius:999px; padding:3px 10px; white-space:nowrap;
+  }
+
+  /* ---- hero ---- */
+  header.hero{padding:64px 0 40px; border-bottom:1px solid var(--line)}
+  .kicker{font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:14px}
+  h1.title{font-size:40px; line-height:1.15; margin:0 0 14px}
+  .subtitle{font-size:18px; color:var(--ink-soft); max-width:640px; margin:0 0 22px}
+  .authorline{font-size:14px; color:var(--ink-soft); font-style:italic; margin-bottom:26px}
+  .cta-row{display:flex; gap:12px; flex-wrap:wrap}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:9px;
+    font-size:14px; font-weight:600; border:1px solid var(--ink); color:var(--ink);
+  }
+  .btn:hover{background:var(--ink); color:var(--paper); text-decoration:none}
+  .btn.primary{background:var(--ink); color:var(--paper)}
+  .btn.primary:hover{background:var(--accent); border-color:var(--accent)}
+  .btn.disabled{opacity:0.45; cursor:default; border-color:var(--line); color:var(--ink-soft)}
+  .btn.disabled:hover{background:none; color:var(--ink-soft); text-decoration:none}
+
+  /* ---- stat strip ---- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin:36px 0 -1px}
+  .stat{background:var(--paper); padding:22px 18px; text-align:center}
+  .stat b{display:block; font-family:Newsreader,serif; font-size:28px; font-weight:600; color:var(--accent)}
+  .stat span{display:block; font-size:12.5px; color:var(--ink-soft); margin-top:4px; line-height:1.35}
+
+  /* ---- sections ---- */
+  section{padding:52px 0; border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:none}
+  .num{color:var(--ink-soft); font-weight:600; margin-right:10px}
+  h2{font-size:26px; margin:0 0 8px}
+  .section-sub{color:var(--ink-soft); font-size:15px; margin:0 0 28px; max-width:680px}
+  p{margin:0 0 16px}
+
+  .rqs{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:22px 0}
+  .rq{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px}
+  .rq b{color:var(--accent); font-size:13px}
+  .rq p{margin:6px 0 0; font-size:14.5px; color:var(--ink)}
+
+  .classes{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:22px 0}
+  .cls{border-radius:10px; padding:16px 18px; border:1px solid var(--line)}
+  .cls.resist{border-left:4px solid var(--resist)}
+  .cls.capit{border-left:4px solid var(--capit)}
+  .cls.fragm{border-left:4px solid var(--fragm)}
+  .cls h3{font-size:16px; margin:0 0 6px; font-family:Inter,sans-serif; font-weight:700}
+  .cls p{font-size:13.5px; color:var(--ink-soft); margin:0}
+
+  .doses{width:100%; border-collapse:collapse; font-size:13.5px; margin:22px 0}
+  .doses th,.doses td{border-bottom:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top}
+  .doses th{color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.03em}
+  .doses td.turn{font-weight:700; color:var(--accent); width:36px}
+  .doses td.cat{white-space:nowrap; color:var(--ink-soft); width:150px}
+
+  figure{margin:28px 0}
+  figure img{width:100%; display:block; border:1px solid var(--line); border-radius:8px; background:#fff}
+  figcaption{font-size:13.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5}
+  figcaption b{color:var(--ink)}
+
+  .findings{margin:26px 0}
+  .findings li{margin-bottom:10px; font-size:15px}
+
+  pre{
+    background:#22252a; color:#e9e6df; padding:18px; border-radius:8px; overflow-x:auto;
+    font-size:12.5px; line-height:1.55;
+  }
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+
+  .anon-note{
+    background:var(--accent-soft); border:1px solid #e3c7bb; border-radius:9px;
+    padding:14px 16px; font-size:13.5px; color:#5a2a1c; margin:0 0 24px;
+  }
+
+  footer{padding:32px 0 60px; color:var(--ink-soft); font-size:13px}
+
+  @media (max-width:720px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .rqs,.classes{grid-template-columns:1fr}
+    h1.title{font-size:30px}
+    nav ul{gap:14px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">WHEN MODELS <span>FOLD</span></div>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#code">Code &amp; Data</a></li>
+      <li><a href="#cite">Cite</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Sycophancy &middot; Uncertainty &middot; Multi-turn Evaluation</div>
+    <h1 class="title">When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation</h1>
+    <p class="subtitle">Does a model's own uncertainty on a question predict whether it will cave to social pressure? We measure it across six models, three benchmarks, and six escalating rhetorical strategies.</p>
+    <p class="authorline">Authors anonymized for double-blind review.</p>
+    <div class="cta-row">
+      <a class="btn disabled" title="Link added after review">Paper (PDF) — coming soon</a>
+      <a class="btn primary" href="https://anonymous.4open.science/r/SycophancyDosageResponse-BDE5/" target="_blank" rel="noopener">Anonymized Code &amp; Data</a>
+      <a class="btn" href="#results">Jump to results &darr;</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>6</b><span>target models across the GPT, Claude &amp; Gemini families</span></div>
+      <div class="stat"><b>3</b><span>benchmarks — MMLU‑Pro, GPQA‑Diamond, HLE</span></div>
+      <div class="stat"><b>~2&times;</b><span>flip rate on uncertain vs. certain questions</span></div>
+      <div class="stat"><b>3</b><span>behavior classes: resisters, capitulators, fragmenters</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="wrap">
+    <h2><span class="num">01</span>Overview</h2>
+    <p class="section-sub">A reliable model should update its answer when shown genuine evidence — not when a user simply repeats an assertion more forcefully. We test whether a model's <em>own uncertainty</em> on a question, measured before any pressure is applied, predicts how far it can be pushed.</p>
+    <p>Sycophancy — agreeing with a user's stated belief over the truth — is well documented in single-turn settings. Recent multi-turn benchmarks show models drift or flip under sustained pressure, but mostly ask <em>whether</em> and <em>how often</em> models flip. We ask a different question: is that susceptibility predictable in advance, from the model's own pre-pressure uncertainty?</p>
+    <div class="rqs">
+      <div class="rq"><b>RQ1</b><p>Does pre-pressure uncertainty moderate susceptibility to sycophancy?</p></div>
+      <div class="rq"><b>RQ2</b><p>Does pressure level, conditioned on uncertainty, predict flipping?</p></div>
+      <div class="rq"><b>RQ3</b><p>Do uncertainty-conditioned pressure effects vary across models?</p></div>
+      <div class="rq"><b>RQ4</b><p>Do chain-of-thought belief trajectories reflect capitulation as it happens?</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <h2><span class="num">02</span>Method</h2>
+    <p class="section-sub">Estimate each question's uncertainty from repeated sampling, then apply six turns of escalating social pressure and watch what happens to the answer — and, separately, to the model's own stated confidence.</p>
+
+    <p><b>Uncertainty.</b> For each question we sample the model $K=25$ times at temperature 1 and compute the Shannon entropy of its answer distribution. Zero entropy means the model is unanimous (certain); higher entropy means its answers disagree with themselves (uncertain) — before a user has said a word.</p>
+
+    <p><b>Pressure.</b> Starting from a correct baseline answer, we plant a wrong answer and apply six pressure turns (T1&ndash;T6), escalating from low- to high-rhetorical authority:</p>
+    <table class="doses">
+      <tr><th>Turn</th><th>Category</th><th>Rhetorical move</th></tr>
+      <tr><td class="turn">T1</td><td class="cat">Personal disagreement</td><td>Simple first-person pushback, no authority claim.</td></tr>
+      <tr><td class="turn">T2</td><td class="cat">Personal certainty</td><td>First-person certainty claim, no external backing.</td></tr>
+      <tr><td class="turn">T3</td><td class="cat">Social proof</td><td>Appeals to external sources / consensus of sources.</td></tr>
+      <tr><td class="turn">T4</td><td class="cat">Expert authority</td><td>Appeals to a domain expert's validation.</td></tr>
+      <tr><td class="turn">T5</td><td class="cat">Personal + accusation</td><td>Certainty claim plus an explicit accusation of error.</td></tr>
+      <tr><td class="turn">T6</td><td class="cat">Crowd consensus</td><td>Appeals to crowd / universal agreement.</td></tr>
+    </table>
+    <p style="font-size:13.5px;color:var(--ink-soft)">We report this fixed order as a design choice, not a claim it's optimal — see the paper for the single-turn robustness check that tests each category in isolation.</p>
+
+    <p><b>Behavioral classes.</b> Fitting a per-model logistic slope of flip probability against pressure turn sorts models into three groups:</p>
+    <div class="classes">
+      <div class="cls resist"><h3>Resisters</h3><p>Flip probability falls or stays flat across the pressure sequence.</p></div>
+      <div class="cls capit"><h3>Capitulators</h3><p>Flip probability rises steadily as pressure escalates.</p></div>
+      <div class="cls fragm"><h3>Fragmenters</h3><p>Under chain-of-thought reasoning, repeated samples stop agreeing with each other at all — the model loses a stable majority answer, not just a correct one.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <h2><span class="num">03</span>Results</h2>
+    <p class="section-sub">Grounded findings — we call out what's significant, what's model-specific, and what isn't, rather than pooling everything into one headline number.</p>
+
+    <ul class="findings">
+      <li><b>RQ1 — uncertainty matters.</b> Questions that induce disagreement across repeated sampling flip at roughly twice the rate of questions the model answers unanimously, on average across our MMLU-Pro cells.</li>
+      <li><b>RQ2 — a small, model-specific interaction.</b> Pressure &times; uncertainty interacts significantly for Claude Sonnet individually, but the pooled, cross-model estimate does not clear conventional significance on its own — a random-effects meta-analysis (below) is what recovers a significant pooled effect.</li>
+      <li><b>RQ3 — models split into resisters and capitulators</b>, and the split is consistent within a model across both benchmarks, not just noise in one dataset.</li>
+      <li><b>RQ4 — models get more confidently wrong, not less confident.</b> Stated confidence stays roughly flat under pressure while accuracy drops, so the gap between what a model says and what's true widens turn over turn.</li>
+    </ul>
+
+    <figure>
+      <img src="assets/figures/rq2_coefs.png" alt="RQ2 logistic regression coefficients per model, MMLU-Pro and GPQA-Diamond">
+      <figcaption><b>Per-model regression coefficients</b> for pressure dose, calibrated hardness, and their interaction. Faded markers are not individually significant (p &ge; 0.05) — most models' interaction term is faded; Claude Sonnet is the clear exception on both benchmarks.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="assets/figures/rq3_combined.png" alt="Flip rate across pressure turns T1 to T6 for five models on MMLU-Pro and GPQA-Diamond, with resisters shown as solid lines and capitulators as dashed lines">
+      <figcaption><b>Flip rate across pressure turns T1&ndash;T6.</b> Dashed = capitulator, solid = resister, shading = 95% CI. The split holds across both benchmarks: GPT-5.4 Nano and GPT-5.4 Mini capitulate on MMLU-Pro; on GPQA-Diamond every model resists (rates fall or hold), including the two MMLU-Pro capitulators.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="assets/figures/rq4_combined.png" alt="Chain-of-thought belief entropy, majority-correct rate, and overconfidence gap across pressure turns T0 to T6">
+      <figcaption><b>Chain-of-thought trajectories under pressure.</b> Top: belief entropy across repeated reasoning samples. Middle: majority-correct rate falls turn over turn. Bottom: the gap between calibrated confidence and actual correctness <em>grows</em> — models don't get less confident as they get less correct.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="assets/figures/ensemble_calibration.png" alt="Ensemble calibration error by model, baseline versus max pressure, and accuracy versus mean confidence scatter, all six models below the perfect-calibration line">
+      <figcaption><b>Ensemble calibration error (ECE) rises under pressure for every model</b> (middle panel), and every model sits below the perfect-calibration line even at baseline (right panel) — accuracy under-shoots stated confidence, and pressure widens that gap further.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="assets/figures/interaction_heterogeneity.png" alt="Forest plot of per-model pressure by uncertainty interaction coefficients with a pooled random-effects estimate">
+      <figcaption><b>Random-effects meta-analysis of the pressure &times; uncertainty interaction</b> across models. Individual per-model estimates are noisy and inconsistent in sign, but the pooled random-effects estimate is positive and significant (low heterogeneity, I&sup2; small) — the interaction is real in aggregate even where no single model reaches significance alone.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap">
+    <h2><span class="num">04</span>Code &amp; Data</h2>
+    <p class="section-sub">Every table, figure, and number in the paper is produced by a checked-in script — no hand-computed numbers.</p>
+    <div class="anon-note">This link is an anonymized mirror for double-blind review. It does not identify the authors.</div>
+    <p>
+      <a href="https://anonymous.4open.science/r/SycophancyDosageResponse-BDE5/" target="_blank" rel="noopener"><b>anonymous.4open.science/r/SycophancyDosageResponse-BDE5</b></a>
+    </p>
+    <p>The pipeline: baseline entropy sampling &rarr; isotonic calibration &rarr; multi-turn pressure runs &rarr; externally-calibrated chain-of-thought reasoning &rarr; ensemble calibration. Every table in the appendix carries a footnote naming the exact script that produced it.</p>
+    <pre><code># baseline entropy sampling
+uv run python scripts/run_baseline.py --model GPT5_4Nano
+
+# multi-turn pressure runs
+uv run python scripts/run_sycophancy.py --model GPT5_4Nano
+
+# regenerate every RQ1-RQ4 figure and stat in the paper
+uv run python analysis/run_rq_analysis_v2.py</code></pre>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <h2><span class="num">05</span>Citation</h2>
+    <p class="section-sub">Citation details will be finalized once review concludes; the entry below is a placeholder.</p>
+    <pre><code>@article{anonymous2026whenmodelsfold,
+  title   = {When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation},
+  author  = {Anonymous},
+  journal = {Under double-blind review},
+  year    = {2026},
+  note    = {Anonymized project page: this site}
+}</code></pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Project page anonymized for double-blind review. Design adapted from the conventions of the Academic Project Page template.
+  </div>
+</footer>
+
+</body>
+</html>
