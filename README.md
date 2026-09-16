@@ -75,6 +75,13 @@ cp .env.example .env    # fill in your API keys
 
 `.env` needs `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `GOOGLE_API_KEY`.
 
+Optionally, set `USE_WSE_GATEWAY=true` and `WSE_GATEWAY_KEY=jhu_live_sk_...`
+to route openai/anthropic calls through the [JHU WSE AI
+Gateway](https://gateway.engineering.jhu.edu/docs) instead of hitting
+OpenAI/Anthropic directly (get a project + key by signing in with your
+JHED). Off by default — `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` are used as
+normal until you opt in.
+
 ## Running the pipeline
 
 All commands assume the repo root as the working directory (paths like

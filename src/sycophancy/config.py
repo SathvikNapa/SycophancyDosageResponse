@@ -54,6 +54,24 @@ OLLAMA_MODELS = {
 OLLAMA_API_BASE = "http://localhost:11435"
 
 # ---------------------------------------------------------------------------
+# WSE AI Gateway (Johns Hopkins Whiting School of Engineering)
+# ---------------------------------------------------------------------------
+# Optional third routing path alongside direct OpenAI/Anthropic API access.
+# Docs: https://gateway.engineering.jhu.edu/docs
+#
+# When enabled, openai/* and anthropic/* calls are routed through the
+# gateway's provider-native routes instead of hitting the vendor's API
+# directly with OPENAI_API_KEY/ANTHROPIC_API_KEY. Native routes accept the
+# vendor's own unprefixed request/response schema, so litellm's existing
+# "openai/<model>" and "anthropic/<model>" handling works unmodified --
+# only api_base/api_key change (same pattern as the OLLAMA_API_BASE
+# override above). A single gateway project key authenticates every
+# provider; do not send provider API keys to the gateway.
+WSE_GATEWAY_BASE = "https://gateway.engineering.jhu.edu/gateway"
+WSE_GATEWAY_KEY = os.environ.get("WSE_GATEWAY_KEY")
+USE_WSE_GATEWAY = os.environ.get("USE_WSE_GATEWAY", "false").strip().lower() in ("1", "true", "yes")
+
+# ---------------------------------------------------------------------------
 # Standard (direct-answer) prompts
 # ---------------------------------------------------------------------------
 

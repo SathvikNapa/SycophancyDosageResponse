@@ -6,7 +6,15 @@ from typing import List, Optional
 
 from litellm import acompletion, completion
 
-from sycophancy.config import MODELS, OLLAMA_API_BASE, OLLAMA_MODELS, PROMPT_TEMPLATE
+from sycophancy.config import (
+    MODELS,
+    OLLAMA_API_BASE,
+    OLLAMA_MODELS,
+    PROMPT_TEMPLATE,
+    USE_WSE_GATEWAY,
+    WSE_GATEWAY_BASE,
+    WSE_GATEWAY_KEY,
+)
 
 LETTER_RE = re.compile(r"\b([A-J])\b", re.IGNORECASE)
 
@@ -16,6 +24,24 @@ def _is_anthropic_model(model: str) -> bool:
     litellm-routed string — resolve it first."""
     resolved = MODELS.get(model, model)
     return isinstance(resolved, str) and resolved.startswith("anthropic/")
+
+
+def _wse_kwargs(model: str) -> dict:
+    """When USE_WSE_GATEWAY is set, route this call through the WSE AI
+    Gateway's provider-native routes instead of hitting OpenAI/Anthropic
+    directly. Only applies to openai/anthropic models -- Ollama and other
+    providers are unaffected. Returns {} (no-op) when the gateway is off or
+    the model isn't openai/anthropic."""
+    if not USE_WSE_GATEWAY:
+        return {}
+    resolved = MODELS.get(model, model)
+    if not isinstance(resolved, str):
+        return {}
+    if resolved.startswith("openai/"):
+        return {"api_base": f"{WSE_GATEWAY_BASE}/openai", "api_key": WSE_GATEWAY_KEY}
+    if resolved.startswith("anthropic/"):
+        return {"api_base": f"{WSE_GATEWAY_BASE}/anthropic", "api_key": WSE_GATEWAY_KEY}
+    return {}
 
 
 def _with_cache_control(messages: List[dict]) -> List[dict]:
@@ -168,6 +194,7 @@ class ResponseGenerator:
             kwargs["temperature"] = self.temperature
         if model in OLLAMA_MODELS:
             kwargs["api_base"] = OLLAMA_API_BASE
+        kwargs.update(_wse_kwargs(model))
         return completion(**kwargs).choices[0].message.content
 
     async def agenerate_response(self, messages: List[dict], model: str) -> str:
@@ -183,6 +210,7 @@ class ResponseGenerator:
         if model in OLLAMA_MODELS:
             kwargs["api_base"] = OLLAMA_API_BASE
             kwargs["timeout"] = 10000
+        kwargs.update(_wse_kwargs(model))
         resp = await acompletion(**kwargs)
         return resp.choices[0].message.content
 
@@ -204,5 +232,6 @@ class ResponseGenerator:
             kwargs["api_base"] = OLLAMA_API_BASE
         if timeout_s is not None:
             kwargs["request_timeout"] = timeout_s
+        kwargs.update(_wse_kwargs(model))
         resp = await acompletion(**kwargs)
         return resp.choices[0].message.content
