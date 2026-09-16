@@ -59,17 +59,41 @@ OLLAMA_API_BASE = "http://localhost:11435"
 # Optional third routing path alongside direct OpenAI/Anthropic API access.
 # Docs: https://gateway.engineering.jhu.edu/docs
 #
-# When enabled, openai/* and anthropic/* calls are routed through the
-# gateway's provider-native routes instead of hitting the vendor's API
-# directly with OPENAI_API_KEY/ANTHROPIC_API_KEY. Native routes accept the
-# vendor's own unprefixed request/response schema, so litellm's existing
-# "openai/<model>" and "anthropic/<model>" handling works unmodified --
-# only api_base/api_key change (same pattern as the OLLAMA_API_BASE
-# override above). A single gateway project key authenticates every
+# When enabled, openai/* and anthropic/* calls go through the gateway's
+# legacy-compat route (/gateway/compat/chat/completions) instead of hitting
+# the vendor's API directly with OPENAI_API_KEY/ANTHROPIC_API_KEY. This is a
+# direct HTTP call (see generator.py's _wse_chat_completion), not routed
+# through litellm's own openai/anthropic provider handling: the compat route
+# requires the *full* canonical "author/model" string as the "model" field
+# (e.g. "anthropic/claude-haiku-4.5"), and litellm's "anthropic/<model>"
+# prefix convention strips that prefix before sending, which breaks this
+# specific route. A single gateway project key authenticates every
 # provider; do not send provider API keys to the gateway.
+#
+# We tried the gateway's provider-native routes first (/gateway/openai/...,
+# /gateway/anthropic/...), which DO compose cleanly with litellm's existing
+# provider handling -- but Claude Haiku was rejected there
+# (MODEL_NOT_ALLOWED_FOR_KEY) while the exact same model succeeded through
+# compat with its canonical short name. Compat is what's actually verified
+# working end-to-end for every model below.
 WSE_GATEWAY_BASE = "https://gateway.engineering.jhu.edu/gateway"
-WSE_GATEWAY_KEY = os.environ.get("WSE_GATEWAY_KEY")
+WSE_COMPAT_ENDPOINT = f"{WSE_GATEWAY_BASE}/compat/chat/completions"
+# Accept either name: WSE_GATEWAY_KEY (this project's convention) or
+# GATEWAY_KEY (the gateway docs' own example variable name).
+WSE_GATEWAY_KEY = os.environ.get("WSE_GATEWAY_KEY") or os.environ.get("GATEWAY_KEY")
 USE_WSE_GATEWAY = os.environ.get("USE_WSE_GATEWAY", "false").strip().lower() in ("1", "true", "yes")
+
+# config.MODELS key -> WSE gateway's canonical "author/model" name. Only
+# entries confirmed working live are listed; a model not listed here raises
+# a clear error rather than guessing at a canonical name that might be
+# subtly wrong (e.g. an unverified minor version).
+WSE_MODEL_NAMES = {
+    "GPT5_4": "openai/gpt-5.4",
+    "GPT5_4Nano": "openai/gpt-5.4-nano",
+    "GPT5_4Mini": "openai/gpt-5.4-mini",
+    "ClaudeSonnet": "anthropic/claude-sonnet-4.6",
+    "ClaudeHaiku": "anthropic/claude-haiku-4.5",
+}
 
 # ---------------------------------------------------------------------------
 # Standard (direct-answer) prompts
