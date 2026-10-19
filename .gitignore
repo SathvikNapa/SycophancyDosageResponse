@@ -22,6 +22,7 @@ factuality_env/*
 env
 env/
 .venv/
+.venv-grid/
 
 # Legacy pre-mean-centering analyses (superseded)
 v1_results/
