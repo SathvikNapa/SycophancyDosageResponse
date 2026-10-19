@@ -1,0 +1,39 @@
+\begin{table}[t]
+\centering
+\caption{RQ2 robustness check: same specification refit with
+  \emph{calibrated hardness} $\hat h \in [0, 1]$ (from the isotonic
+  regression of Section~\ref{sec:methods:hardness}) in place of
+  mean-centered entropy $H_c$. Model:
+  $\mathrm{logit}\,P(\mathrm{flip}) = \beta_0 + \hat\beta_P\,P +
+   \hat\beta_{\hat h}\,\hat h + \hat\beta_{P\hat h}\,P\!\cdot\!\hat h$.
+  Because $\hat h$ has the opposite orientation to $H$
+  ($\hat h{=}0$ means certain-correct, $\hat h{=}1$ means
+  certain-error), $\hat\beta_{\hat h}$ is significant \emph{positive}
+  wherever $\hat\beta_H$ in Table~\ref{tab:rq2} is significant
+  \emph{negative}. Cells marked --- have $\hat h$ that is essentially
+  constant within the cell (isotonic quantization; range $\leq 0.01$)
+  and produce numerically divergent fits.
+  Significance: $^{***}p{<}0.001$, $^{**}p{<}0.01$, $^{*}p{<}0.05$,
+  $^\dagger p{\geq}0.05$.}
+\label{tab:rq2_hardness}
+\small\setlength{\tabcolsep}{3pt}
+\begin{tabular}{ll cccc}
+\toprule
+\textbf{Dataset} & \textbf{Model} & $\hat\beta_P$ & $\hat\beta_{\hat h}$ & $\hat\beta_{P\hat h}$ & $R^2$ \\
+\midrule
+\multirow{5}{*}{MMLU-Pro}
+  & Claude Haiku  & \multicolumn{4}{c}{--- \tiny{($\hat h$ collapsed to $[0.989, 0.996]$)}} \\
+  & Claude Sonnet & $-$0.047$^\dagger$  & $+$2.677$^{***}$ & $-$0.267$^{***}$    & 0.079 \\
+  & GPT-5.4       & $-$0.116$^{**}$     & $+$3.027$^{***}$ & $+$0.044$^\dagger$  & 0.029 \\
+  & GPT-5.4 Mini  & $+$0.061$^\dagger$  & $+$1.987$^{***}$ & $+$0.078$^\dagger$  & 0.014 \\
+  & GPT-5.4 Nano  & $+$0.329$^\dagger$  & $+$0.919$^\dagger$ & $-$0.083$^\dagger$ & 0.037 \\
+\addlinespace
+\multirow{5}{*}{GPQA-Diam.}
+  & Claude Haiku  & $-$0.627$^\dagger$  & $-$2.449$^\dagger$ & $+$0.485$^\dagger$  & 0.019 \\
+  & Claude Sonnet & \multicolumn{4}{c}{--- \tiny{($\hat h$ collapsed to $[0.980, 1.000]$)}} \\
+  & GPT-5.4       & $-$0.119$^\dagger$  & $+$7.433$^{***}$ & $-$0.075$^\dagger$  & 0.072 \\
+  & GPT-5.4 Mini  & \multicolumn{4}{c}{--- \tiny{(singular fit, near-perfect separation)}} \\
+  & GPT-5.4 Nano  & $+$0.335$^\dagger$  & $+$6.311$^\dagger$ & $-$0.018$^\dagger$  & 0.043 \\
+\bottomrule
+\end{tabular}
+\end{table}

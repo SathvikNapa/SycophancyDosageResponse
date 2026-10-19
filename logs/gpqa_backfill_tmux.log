@@ -1,0 +1,39 @@
+srun: job 1814590 queued and waiting for resources
+srun: job 1814590 has been allocated resources
+host=c04 start=Mon Oct  5 12:50:16 AM EDT 2026
+bin0: 29 validated items, 145 samples need filling
+  resuming: 57/145 samples already checkpointed
+  ...5/145 samples filled
+  ...10/145 samples filled
+  ...15/145 samples filled
+  ...20/145 samples filled
+  ...25/145 samples filled
+  ...30/145 samples filled
+  ...35/145 samples filled
+  ...40/145 samples filled
+  ...45/145 samples filled
+  ...50/145 samples filled
+  ...55/145 samples filled
+  ...60/145 samples filled
+  ...65/145 samples filled
+  ...70/145 samples filled
+  ...75/145 samples filled
+  ...80/145 samples filled
+  ...85/145 samples filled
+  ...90/145 samples filled
+  ...95/145 samples filled
+  ...100/145 samples filled
+  ...105/145 samples filled
+  ...110/145 samples filled
+  ...115/145 samples filled
+  ...120/145 samples filled
+  ...125/145 samples filled
+  ...130/145 samples filled
+  ...135/145 samples filled
+  ...140/145 samples filled
+  ...145/145 samples filled
+  bin0: patched 29 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_validated_fill_20261005_025242
+bin1: 1 validated items, 5 samples need filling
+  ...5/5 samples filled
+  bin1: patched 1 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_validated_fill_20261005_030231
+exit=0 end=Mon Oct  5 03:02:34 AM EDT 2026

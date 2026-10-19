@@ -1,0 +1,31 @@
+\begin{tabular}{ll ccc ccc}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{$H_c$-based (main)}} & \multicolumn{3}{c}{\textbf{$\hat h$-based (robustness)}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Dataset} & \textbf{Model} & $\hat\beta_P$ & $\hat\beta_H$ & $\hat\beta_{PH}$ & $\hat\beta_P$ & $\hat\beta_{\hat h}$ & $\hat\beta_{P\hat h}$ \\
+\midrule
+\multirow{5}{*}{MMLU-Pro}
+ & Claude Haiku & $-$1.706$^{***}$ & $-$1.578$^\dagger$ & $+$0.290$^\dagger$ & $-$1.565$^{***}$ & $+$2.702$^\dagger$ & $-$0.475$^\dagger$ \\
+  & Claude Sonnet & $-$1.161$^{***}$ & $-$0.512$^\dagger$ & $-$0.117$^\dagger$ & $-$1.185$^{***}$ & $+$1.130$^\dagger$ & $+$0.143$^\dagger$ \\
+  & GPT-5.4 & $-$0.156$^{***}$ & $-$1.319$^{*}$ & $+$0.216$^\dagger$ & $-$0.087$^\dagger$ & $+$1.608$^\dagger$ & $-$0.228$^\dagger$ \\
+  & GPT-5.4 Mini & $-$0.309$^{***}$ & $-$0.781$^\dagger$ & $+$0.163$^\dagger$ & $-$0.319$^{***}$ & $+$0.401$^\dagger$ & $-$0.055$^\dagger$ \\
+  & GPT-5.4 Nano & $-$0.490$^{***}$ & $-$1.428$^\dagger$ & $+$1.085$^\dagger$ & $+$1.012$^\dagger$ & $+$2.544$^\dagger$ & $-$2.315$^{*}$ \\
+\addlinespace
+\midrule
+\multirow{5}{*}{GPQA-Diamond}
+ & Claude Haiku & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Claude Sonnet & $-$0.874$^{***}$ & $-$0.489$^\dagger$ & $-$0.254$^\dagger$ & $-$0.996$^{***}$ & $+$1.043$^\dagger$ & $+$0.560$^\dagger$ \\
+  & GPT-5.4 & $-$0.226$^{***}$ & $-$0.680$^\dagger$ & $+$0.135$^\dagger$ & $+$0.028$^\dagger$ & $+$1.642$^\dagger$ & $-$0.526$^\dagger$ \\
+  & GPT-5.4 Mini & $-$0.458$^{***}$ & $-$1.679$^\dagger$ & $+$0.190$^\dagger$ & $-$1.179$^\dagger$ & $+$2.370$^\dagger$ & $+$1.219$^\dagger$ \\
+  & GPT-5.4 Nano & $-$0.904$^{***}$ & $+$2.271$^\dagger$ & $-$0.370$^\dagger$ & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+\addlinespace
+\midrule
+\multirow{6}{*}{HLE}
+ & Claude Haiku & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Claude Sonnet & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & GPT-5.4 & $-$0.466$^{*}$ & $-$0.120$^\dagger$ & $-$0.260$^\dagger$ & $-$0.289$^{}$ & $+$0.365$^\dagger$ & $-$0.236$^\dagger$ \\
+  & GPT-5.4 Mini & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & GPT-5.4 Nano & $-$0.785$^{*}$ & $+$0.583$^\dagger$ & $-$0.184$^\dagger$ & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Gemini 3.5 Flash & $-$0.375$^{***}$ & $-$2.593$^{***}$ & $+$0.611$^{*}$ & $+$0.573$^\dagger$ & $+$7.764$^{**}$ & $-$1.923$^\dagger$ \\
+\bottomrule
+\end{tabular}

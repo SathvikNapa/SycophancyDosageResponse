@@ -1,0 +1,112 @@
+% =====================================================================
+% Figure 1: key idea (a) + strongest evidence (b, RQ1 MMLU-Pro).
+%   Include in paper:  \input{figures/fig1_overview}  inside figure* env.
+%   Requires in preamble: \usepackage{tikz}
+%     \usetikzlibrary{positioning, arrows.meta, calc, decorations.pathreplacing}
+%   Data: tables/rq1.tex (MMLU-Pro block), pooled averages from Sec. 5 (RQ1).
+% =====================================================================
+\begin{tikzpicture}[
+  font=\footnotesize\sffamily,
+  every node/.style={align=center},
+  box/.style={rectangle, rounded corners=2pt, draw=black!60, fill=gray!8,
+              thick, inner sep=3pt},
+  certbox/.style={rectangle, rounded corners=2pt, draw=blue!60, fill=blue!8,
+              thick, inner sep=3pt},
+  uncbox/.style={rectangle, rounded corners=2pt, draw=orange!80!black,
+              fill=orange!12, thick, inner sep=3pt},
+  pressbox/.style={rectangle, rounded corners=2pt, draw=red!60!black,
+              fill=red!6, thick, inner sep=4pt},
+  arr/.style={-{Stealth[length=2.2mm]}, semithick, draw=black!70},
+  panel/.style={font=\normalsize\bfseries\sffamily},
+]
+
+% =====================  PANEL (a): key idea  =====================
+\node[panel] at (-0.3, 5.9) {(a)};
+
+\node[box, minimum width=48mm] (q) at (2.6, 5.6)
+  {Multiple-choice question $q$\\[-1pt]
+   {\scriptsize gold answer $a^*$}};
+
+% branch boxes with answer-distribution glyphs
+\node[certbox, minimum width=23mm, minimum height=17mm] (cert) at (1.25, 3.35)
+  {\textbf{Certain} $H{=}0$\\[1pt]
+   \textcolor{blue!60}{\rule{3mm}{8mm}}\\[-2pt]
+   {\tiny\texttt{C}}\\[-1pt]
+   {\scriptsize all 25 agree}};
+\node[uncbox, minimum width=23mm, minimum height=17mm] (unc) at (3.95, 3.35)
+  {\textbf{Uncertain} $H{<}0$\\[1pt]
+   \textcolor{orange!80!black}{\rule{3mm}{5mm}}\,%
+   \textcolor{orange!80!black}{\rule{3mm}{3mm}}\,%
+   \textcolor{orange!80!black}{\rule{3mm}{1.5mm}}\\[-2pt]
+   {\tiny\texttt{C}\;\;\texttt{B}\;\;\texttt{E}}\\[-1pt]
+   {\scriptsize answers spread}};
+
+\draw[semithick, draw=black!70] (q.south) -- node[left=1pt, pos=0.45]
+  {\scriptsize $K{=}25$ samples,\\[-2pt]\scriptsize no pressure} ($(cert.north)!0.5!(unc.north) + (0,0.12)$);
+\draw[arr] ($(cert.north)!0.5!(unc.north) + (0,0.12)$) -- (cert.north);
+\draw[arr] ($(cert.north)!0.5!(unc.north) + (0,0.12)$) -- (unc.north);
+
+% pressure ladder
+\node[pressbox, minimum width=50mm] (press) at (2.6, 1.15)
+  {\textbf{6 escalating pressure turns} {\scriptsize(planted wrong $a^\dagger$)}\\[2pt]
+   {\scriptsize $T_1$: ``I don't think that's right. The answer is $a^\dagger$.''}\\[-1pt]
+   {\scriptsize $\vdots$ \; sources, experts, accusation \; $\vdots$}\\[-1pt]
+   {\scriptsize $T_6$: ``Everyone I've asked agrees the answer is $a^\dagger$.''}};
+
+\draw[arr] (cert.south) -- (cert.south |- press.north);
+\draw[arr] (unc.south) -- (unc.south |- press.north);
+
+\node[box, minimum width=40mm] (out) at (2.6, -0.75)
+  {Does the model \textbf{hold} $a^*$\\[-1pt] or \textbf{flip} to $a^\dagger$?};
+\draw[arr] (press.south) -- (out.north);
+
+% =====================  PANEL (b): RQ1 evidence  =====================
+\begin{scope}[shift={(6.5, -0.62)}, y=0.058cm]
+\node[panel] at (0.0, 111) {(b)};
+
+% gridlines + y axis
+\foreach \yy in {0, 20, 40, 60, 80, 100} {
+  \draw[black!15, thin] (0.35, \yy) -- (7.0, \yy);
+  \node[font=\tiny, black!70, left] at (0.35, \yy) {\yy};
+}
+\draw[black!70] (0.35, 0) -- (0.35, 104);
+\draw[black!70] (0.35, 0) -- (7.0, 0);
+\node[rotate=90, font=\scriptsize, black!80] at (-0.25, 50) {Flip rate (\%)};
+
+% pooled averages + 2x brace
+\draw[blue!60, dashed, thin]           (0.35, 23.6) -- (7.0, 23.6);
+\draw[orange!80!black, dashed, thin]   (0.35, 46.6) -- (7.0, 46.6);
+\draw[decorate, decoration={brace, amplitude=3.5pt}, black!80]
+  (7.1, 46.6) -- (7.1, 23.6)
+  node[midway, right=3pt, font=\scriptsize, align=left]
+  {$\approx\!2\times$\\[-2pt]{\tiny pooled avg:}\\[-3pt]{\tiny $23.6\!\to\!46.6$}};
+
+% bars: name / certain (val, lo, hi) / uncertain (val, lo, hi)
+\foreach \i/\name/\c/\cl/\chh/\u/\ul/\uh in {
+  0/{Claude\\[-2pt]Haiku}/0.0/0.0/0.1/28.2/27.1/29.3,
+  1/{Claude\\[-2pt]Sonnet}/10.2/9.6/10.8/71.1/69.5/72.7,
+  2/{GPT-5.4}/16.4/15.6/17.2/35.2/32.1/38.4,
+  3/{GPT-5.4\\[-2pt]Mini}/52.1/50.9/53.4/79.5/77.0/81.7,
+  4/{GPT-5.4\\[-2pt]Nano}/65.4/63.9/66.9/76.1/71.4/80.2} {
+  \pgfmathsetmacro\gx{1.05 + \i*1.28}
+  % certain bar
+  \fill[blue!45, draw=blue!60!black, thin]
+    (\gx - 0.55, 0) rectangle (\gx - 0.05, \c);
+  \draw[black!80, thin] (\gx - 0.30, \cl) -- (\gx - 0.30, \chh);
+  \node[font=\tiny, black!80] at (\gx - 0.30, \chh + 3.5) {\c};
+  % uncertain bar
+  \fill[orange!70, draw=orange!80!black, thin]
+    (\gx + 0.05, 0) rectangle (\gx + 0.55, \u);
+  \draw[black!80, thin] (\gx + 0.30, \ul) -- (\gx + 0.30, \uh);
+  \node[font=\tiny, black!80] at (\gx + 0.30, \uh + 3.5) {\u};
+  % x label
+  \node[font=\scriptsize, black!85, anchor=north] at (\gx, -3) {\name};
+}
+
+% legend
+\node[draw=black!30, fill=white, rounded corners=1.5pt, inner sep=3pt,
+      anchor=north west, align=left] at (0.55, 102) {
+  \textcolor{blue!45}{\rule{3mm}{2.2mm}}\,{\scriptsize certain ($H{=}0$)}\\[-1pt]
+  \textcolor{orange!70}{\rule{3mm}{2.2mm}}\,{\scriptsize uncertain ($H{<}0$)}};
+\end{scope}
+\end{tikzpicture}

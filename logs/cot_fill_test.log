@@ -1,0 +1,55 @@
+building fill plan...
+  ClaudeSonnet/mmlu_pro: 2 dialogues to fill
+  ClaudeSonnet/gpqa_diamond: 2 dialogues to fill
+  ClaudeHaiku/hle: 2 dialogues to fill
+  ClaudeSonnet/hle: 2 dialogues to fill
+[gen round 0] msgbatch_012ALXJ8DfvKxurkQ21cyPp1: 8 requests
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+[gen round 0] 7 turns filled, 1 to retry, 0 gave up | round $0.38, total $0.38
+[gen round 1] msgbatch_01WnwnzrePsqNDe6kc4Mc88B: 8 requests
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+[gen round 1] 8 turns filled, 0 to retry, 0 gave up | round $0.36, total $0.74
+[gen round 2] msgbatch_01ULvvcZ1dhWpac57HQbmH29: 8 requests
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+  ...processing 8, succeeded 0, errored 0
+[gen round 2] 8 turns filled, 0 to retry, 0 gave up | round $0.39, total $1.13
+[gen round 3] msgbatch_011pj3eWhimKbuP24hGEy3Ci: 7 requests
+  ...processing 7, succeeded 0, errored 0
+  ...processing 7, succeeded 0, errored 0
+  ...processing 7, succeeded 0, errored 0
+[gen round 3] 7 turns filled, 0 to retry, 0 gave up | round $0.21, total $1.34
+[gen round 4] msgbatch_019qUwE67AwBrRsTntSvoUwd: 5 requests
+  ...processing 5, succeeded 0, errored 0
+  ...processing 5, succeeded 0, errored 0
+  ...processing 5, succeeded 0, errored 0
+  ...processing 5, succeeded 0, errored 0
+[gen round 4] 5 turns filled, 0 to retry, 0 gave up | round $0.25, total $1.59
+[gen round 5] msgbatch_016WJDh2jQehQFjNJskUj7Ay: 3 requests
+  ...processing 3, succeeded 0, errored 0
+  ...processing 3, succeeded 0, errored 0
+  ...processing 3, succeeded 0, errored 0
+[gen round 5] 3 turns filled, 0 to retry, 0 gave up | round $0.19, total $1.78
+[gen round 6] msgbatch_01UWvjMFVanu818HJ1uvwRPJ: 1 requests
+  ...processing 1, succeeded 0, errored 0
+  ...processing 1, succeeded 0, errored 0
+[gen round 6] 1 turns filled, 0 to retry, 0 gave up | round $0.06, total $1.84
+[cal round 0] 836 step requests
+  submitted batch_6ac47328a53c8190afb1de7bdae32ffc (836 requests)
+  ...batch_6ac47328a53c8190afb1de7bdae32ffc validating: 0/0
+  ...batch_6ac47328a53c8190afb1de7bdae32ffc validating: 0/0
+  ...batch_6ac47328a53c8190afb1de7bdae32ffc in_progress: 210/836
+  batch_6ac47328a53c8190afb1de7bdae32ffc completed; calibrated steps so far 836
+gen round 7; Anthropic spend $1.84; calibrated steps 836; limit 2
+  ClaudeHaiku/hle: done 2, pending 0, failed 0 | letters seed 2
+  ClaudeSonnet/gpqa_diamond: done 2, pending 0, failed 0 | letters fresh 2
+  ClaudeSonnet/hle: done 2, pending 0, failed 0 | letters seed 2
+  ClaudeSonnet/mmlu_pro: done 2, pending 0, failed 0 | letters seed 2

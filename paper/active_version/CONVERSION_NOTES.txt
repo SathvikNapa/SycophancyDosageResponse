@@ -1,0 +1,126 @@
+NAACL conversion + aggressive content cut, session notes.
+
+STATUS: ~8.3 pages of main content (Abstract through Broader Impact
+Statement). NAACL long-paper limit is 8 pages content + unlimited
+references/appendix. Very close but not exact.
+
+WORD COUNTS (main content, original TMLR -> this NAACL cut):
+  8102 words -> 3829 words (53% cut)
+
+WHAT WAS CUT:
+- Methods: ~4000 -> ~1300 words. Calibrated-hardness signal (used only
+  for a supplementary robustness check) moved to Appendix C, consolidated
+  with its existing robustness-check discussion there.
+- Results: ~1800 -> ~1000 words, and 3 of 6 figures moved to appendix
+  (RQ2 interaction curves -> App C, heterogeneity meta-analysis -> App C,
+  ensemble calibration -> App A). Kept RQ2 coefficients, RQ3 trajectories,
+  RQ4 belief/confidence in the main text as the three load-bearing figures.
+- Background, Discussion, Conclusion, Limitations, Statements: all cut
+  roughly in half.
+- All three remaining main-text figures had their width trimmed modestly
+  (0.8-0.88x textwidth) to reclaim vertical space; no content was removed
+  from the figures themselves.
+
+BUGS FIXED ALONG THE WAY (not just cuts):
+- Discussion and Conclusion both stated the pooled RQ2 interaction was
+  "not significant" -- stale from an earlier draft. Current Results
+  numbers show it IS significant (p=0.0004). Fixed both.
+- tables/rq3.tex and tables/coverage.tex both marked Claude Sonnet's HLE
+  results as empty (empty-set symbol), contradicting the Results prose,
+  which cites Sonnet's HLE slope as a real measured value. Fixed both
+  tables to show the actual value.
+- Fixed several spaced-hyphen ("word - word") constructions in table
+  reproducibility footnotes that read like em dashes.
+
+REMAINING GAP: content still runs about 15-20 lines into page 9 (the
+tail of the Broader Impact Statement) before References start. I made
+six rounds of trimming, tightened float spacing, and reduced figure
+widths; each round helped, but returns are now small per additional
+cut. Two options if you need this exact:
+  1. Cut ~100-150 more words directly from the Broader Impact Statement
+     or Limitations (both are already tight, so this will read choppy).
+  2. Check the actual NAACL cycle's current policy: at several past
+     ACL/NAACL/EMNLP cycles, the Limitations section (and sometimes the
+     Ethics/Broader Impact statement) has NOT counted against the 8-page
+     limit. If that's true this cycle, the paper as it stands may
+     already be compliant -- worth checking the current call for papers
+     before cutting further.
+
+STILL UNCHANGED FROM THE PRIOR SESSION NOTE:
+- ulem.sty was a sandbox-only stub, not included here (standard on
+  Overleaf/any normal TeX Live install).
+- main_tmlr.tex.bak is your original TMLR main.tex for reference.
+
+--- UPDATE: table overlap + prompt boxes + broken refs pass ---
+
+Fixed three more issues after a full page-by-page visual sweep:
+
+1. tab:cal_turn (9 columns) and tab:cal_overall (7 columns) were both
+   set as single-column `table` floats, causing severe text overlap in
+   a two-column layout. Converted both to `table*`.
+
+2. tab:hle_consensus and tab:entropy_dist, both single-column tables,
+   were landing side by side on the same page with a bottomrule from
+   one bleeding across the column gutter directly through the other
+   table's "GPQA-Diam." label. Converted both to `table*` so they can
+   never be placed side by side again.
+
+3. tables/pressure_levels.tex (Table 1) had a valid \label but was
+   never actually \input anywhere, so every \ref to it rendered as
+   "??". Added the missing \input in methods.tex, right after the
+   paragraph that describes the six pressure levels.
+
+4. One remaining broken ref: \ref{sec:methods:hardness}, pointing to
+   content that was moved to the appendix during the earlier page-cut.
+   Redirected to \ref{app:rq2_table} in tables/rq2_combined.tex.
+   (tables/rq2_hardness.tex has the same broken ref but is a dead file,
+   never \input anywhere -- left as is.)
+
+5. All four prompt templates in Appendix G now render in yellow-header
+   tcolorbox boxes (Direct-answer, Adversarial pressure, Free-form CoT,
+   Confidence-estimator prompts) instead of plain unstyled quote blocks.
+   Added \usepackage[most]{tcolorbox} and a \newtcolorbox{promptbox}
+   definition to main.tex.
+
+Full compile cycle (pdflatex -> bibtex -> pdflatex x2) is clean: zero
+errors, zero undefined references, zero multiply-defined labels.
+Did a complete visual page-by-page sweep of all 20 rendered pages to
+confirm no other tables/floats are colliding.
+
+Page count is now 20 (was 19 before this pass) -- the extra page comes
+from converting tab:hle_consensus and tab:entropy_dist to full-width,
+which was necessary for correctness. This adds to the appendix, which
+has no NAACL page limit, so it doesn't affect the 8-page content
+budget discussed earlier in this file.
+
+--- UPDATE: appendix index ---
+
+Added an "Appendix Contents" index at the top of the appendix
+(sections/appendix.tex), right after \clearpage and before Section A.
+Lists all 12 appendix sections (A-L) with title and page number, built
+from \ref / \nameref / \pageref against each section's existing label,
+so it self-updates if sections are ever reordered, renamed, or added.
+Requires nameref, which is already available (auto-loaded by hyperref,
+which acl.sty requires).
+
+--- UPDATE: appendix index on its own page ---
+
+Added \clearpage right after the Appendix Contents index table, so
+it now sits alone on page 11 with Section A starting cleanly on
+page 12 (was previously sharing a page with Section A).
+
+Confirmed: no ARR/NAACL page limit applies to the appendix (per
+current ACLPUB formatting guidelines and 2026 ACL/COLING CFPs --
+"unlimited number of pages for references and supplementary material
+like the appendix"), so no content was cut. Total page count is now
+21 (was 19), all in the unlimited appendix zone.
+
+--- UPDATE: index page redesigned to use full page width ---
+
+The index was confined to a single narrow column (half the page),
+leaving the other column blank and making the page look broken/empty.
+Switched to \onecolumn for just this page (via \onecolumn ... \twocolumn
+around the index block), enlarged the title to \LARGE, the entries to
+\large with arraystretch 2.0 for generous row spacing, and widened the
+title column to use full \textwidth instead of \linewidth. Page 12
+(Section A) reverts to normal two-column layout immediately after.

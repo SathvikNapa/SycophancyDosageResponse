@@ -1,0 +1,67 @@
+\noindent
+\begin{minipage}{\columnwidth}
+\centering
+
+\captionof{table}{
+Per-turn flip-rate trend, cluster-robust (by question) logistic fit,
+reported as the average marginal effect (AME) in pp/turn at each cell's mean
+wrong rate (\autoref{sec:methods:stats}). Negative AME indicates resistance,
+positive indicates capitulation; significance stars are from the underlying
+cluster-robust logit slope, not the AME approximation itself.
+Non-significant classifications are marked $\dagger$.
+Full trajectories appear in \autoref{fig:rq3combined}.
+}
+\label{tab:rq3}
+
+\small
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.04}
+
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Dataset}
+& \textbf{Model}
+& \textbf{AME \tiny{(pp/turn)}}
+& \textbf{Group} \\
+\midrule
+
+\multirow{5}{*}{MMLU-Pro}
+  & Claude Haiku & $-$3.27$^{***}$ & Resister \\
+  & Claude Sonnet & $-$1.32$^{***}$ & Resister \\
+  & GPT-5.4 & $+$6.51$^{***}$ & Capitulator \\
+  & GPT-5.4 Mini & $+$6.06$^{***}$ & Capitulator \\
+  & GPT-5.4 Nano & $+$4.53$^{***}$ & Capitulator \\
+\addlinespace
+\midrule
+\multirow{5}{*}{GPQA-Diam.}
+  & Claude Haiku & $-$0.59$^{\dagger}$ & Resister$^\dagger$ \\
+  & Claude Sonnet & $+$0.87$^{*}$ & Capitulator \\
+  & GPT-5.4 & $+$7.85$^{***}$ & Capitulator \\
+  & GPT-5.4 Mini & $+$4.21$^{***}$ & Capitulator \\
+  & GPT-5.4 Nano & $+$2.53$^{***}$ & Capitulator \\
+\addlinespace
+\midrule
+\multirow{6}{*}{HLE}
+  & Claude Haiku
+      & \multicolumn{2}{c}{$\varnothing$ \;\scriptsize(no reliable slope)} \\
+  & Claude Sonnet & $-$0.79$^{\dagger}$ & Resister$^\dagger$ \\
+  & GPT-5.4 & $+$5.30$^{**}$ & Capitulator \\
+  & GPT-5.4 Mini & $+$4.85$^{**}$ & Capitulator \\
+  & GPT-5.4 Nano & $+$2.47$^{***}$ & Capitulator \\
+  & Gemini 3.5 Flash & $+$4.27$^{***}$ & Capitulator \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+
+{\footnotesize
+\emph{Significance (cluster-robust logit slope):}
+$^{***}p{<}0.001$,
+$^{**}p{<}0.01$,
+$^{*}p{<}0.05$,
+$^\dagger p{\geq}0.05$.\\
+\emph{Reproducibility:}
+\texttt{analysis/rq3\_rebuild.py}
+}
+
+\end{minipage}

@@ -14,6 +14,72 @@ from sycophancy.generator import ResponseGenerator, extract_letter
 
 _LETTERS = list("ABCDEFGHIJ")
 
+# Retry policy for every model call in a sycophancy dialogue. Rate limits
+# (429), server errors, timeouts and empty completions are retried with
+# capped exponential backoff; account-level errors (exhausted credits,
+# billing, auth) abort the run instead, since retrying cannot fix them and
+# continuing would write a dataset of failed turns.
+DEFAULT_MAX_RETRIES   = 6
+DEFAULT_RETRY_BASE_S  = 2.0
+DEFAULT_RETRY_CAP_S   = 60.0
+_FATAL_MARKERS = (
+    "credit balance", "billing", "insufficient_quota", "exceeded your current quota",
+    "payment required", "invalid api key", "invalid x-api-key", "authentication",
+    "model_not_allowed",
+)
+
+
+class FatalAPIError(RuntimeError):
+    """Account-level API failure (credits, billing, auth) — stop the run."""
+
+
+def _status_code(e: Exception) -> Optional[int]:
+    code = getattr(e, "status_code", None)
+    if code is None:
+        code = getattr(getattr(e, "response", None), "status_code", None)
+    return code if isinstance(code, int) else None
+
+
+def _is_fatal(e: Exception) -> bool:
+    msg = str(e).lower()
+    return _status_code(e) in (401, 402, 403) or any(m in msg for m in _FATAL_MARKERS)
+
+
+def _is_retryable(e: Exception) -> bool:
+    code = _status_code(e)
+    if code is None:
+        return True  # timeouts, connection resets, empty completions
+    return code in (408, 409, 429) or code >= 500
+
+
+async def call_with_retries(
+    make_call,
+    max_retries: int   = DEFAULT_MAX_RETRIES,
+    base_s:      float = DEFAULT_RETRY_BASE_S,
+    cap_s:       float = DEFAULT_RETRY_CAP_S,
+) -> str:
+    """
+    Awaits make_call() until it returns a non-empty string. Raises
+    FatalAPIError on account-level errors, and re-raises the last error once
+    retries are exhausted or the error is a non-retryable client error.
+    """
+    last: Optional[Exception] = None
+    for attempt in range(max_retries + 1):
+        try:
+            raw = await make_call()
+            if raw and raw.strip():
+                return raw
+            last = RuntimeError("empty completion")
+        except Exception as e:
+            if _is_fatal(e):
+                raise FatalAPIError(f"{type(e).__name__}: {e}") from e
+            if not _is_retryable(e):
+                raise
+            last = e
+        if attempt < max_retries:
+            await asyncio.sleep(min(cap_s, base_s * (2 ** attempt)) + random.random())
+    raise last
+
 
 # ---------------------------------------------------------------------------
 # Utility helpers
@@ -83,15 +149,19 @@ async def estimate_turn_confidence(
     0.0 = confident; more negative = uncertain.
     """
     async def single_poll(i: int) -> Optional[str]:
-        async with sem:
-            try:
-                raw = await rg.acomplete(
+        async def make_call() -> str:
+            async with sem:
+                return await rg.acomplete(
                     messages=messages, model=model,
                     timeout_s=timeout_s, seed=1000 + seed_offset + i,
                 )
-                return extract_letter((raw or "").strip())
-            except Exception:
-                return None
+        try:
+            raw = await call_with_retries(make_call)
+        except FatalAPIError:
+            raise
+        except Exception:
+            return None
+        return extract_letter(raw.strip())
 
     results = await asyncio.gather(*[single_poll(i) for i in range(n_polls)])
     answers = [r for r in results if r is not None]
@@ -116,8 +186,8 @@ async def run_sycophancy_conversation(
     timeout_s:           Union[float, None],
     seed:                int,
     n_confidence_polls:  int             = DEFAULT_N_CONFIDENCE_POLLS,
-    max_retries:         int             = 1,
-    retry_backoff_s:     float           = 0.5,
+    max_retries:         int             = DEFAULT_MAX_RETRIES,
+    retry_backoff_s:     float           = DEFAULT_RETRY_BASE_S,
     early_stop_on_wrong: bool            = False,
     system_msg:          Optional[dict]  = None,
     cot_mode:            bool            = False,
@@ -149,19 +219,16 @@ async def run_sycophancy_conversation(
     errors:           List[str]           = []
 
     async def one_call(curr_messages: List[dict]) -> Tuple[Optional[str], Optional[str]]:
-        err: Optional[str] = None
-        for attempt in range(max_retries + 1):
+        async def make_call() -> str:
             async with sem:
-                try:
-                    raw = await rg.agenerate_response(curr_messages, model=model)
-                    return raw, None
-                except Exception as e:
-                    err = f"{type(e).__name__}: {e}"
-            if attempt < max_retries:
-                await asyncio.sleep(
-                    retry_backoff_s * (2 ** attempt) + random.random() * 0.05
-                )
-        return None, err
+                return await rg.agenerate_response(curr_messages, model=model)
+        try:
+            raw = await call_with_retries(make_call, max_retries=max_retries, base_s=retry_backoff_s)
+            return raw, None
+        except FatalAPIError:
+            raise
+        except Exception as e:
+            return None, f"{type(e).__name__}: {e}"
 
     def record_turn(raw: Optional[str], err: Optional[str], category: Optional[str]) -> None:
         if err:
@@ -247,8 +314,8 @@ async def run_sycophancy_over_items(
     concurrency:         int             = 5,
     timeout_s:           Optional[float] = 120.0,
     n_confidence_polls:  int             = DEFAULT_N_CONFIDENCE_POLLS,
-    max_retries:         int             = 1,
-    retry_backoff_s:     float           = 0.5,
+    max_retries:         int             = DEFAULT_MAX_RETRIES,
+    retry_backoff_s:     float           = DEFAULT_RETRY_BASE_S,
     base_seed:           int             = 1234,
     early_stop_on_wrong: bool            = False,
     show_progress:       bool            = True,

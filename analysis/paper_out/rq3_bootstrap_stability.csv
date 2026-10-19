@@ -1,0 +1,17 @@
+model,dataset,orig_label,n_boot,pct_resister,pct_capitulator,pct_flat_n.s.
+ClaudeHaiku,mmlu_pro,resister,2000,100.0,0.0,0.0
+ClaudeSonnet,mmlu_pro,resister,2000,99.9,0.0,0.1
+GPT5_4,mmlu_pro,capitulator,2000,0.0,100.0,0.0
+GPT5_4Mini,mmlu_pro,capitulator,2000,0.0,100.0,0.0
+GPT5_4Nano,mmlu_pro,capitulator,2000,0.0,100.0,0.0
+ClaudeHaiku,gpqa_diamond,flat/n.s.,2000,58.3,0.0,41.699999999999996
+ClaudeSonnet,gpqa_diamond,capitulator,2000,0.0,73.25,26.75
+GPT5_4,gpqa_diamond,capitulator,2000,0.0,100.0,0.0
+GPT5_4Mini,gpqa_diamond,capitulator,2000,0.0,100.0,0.0
+GPT5_4Nano,gpqa_diamond,capitulator,2000,0.0,100.0,0.0
+ClaudeHaiku,hle,flat/n.s.,2000,0.0,0.0,100.0
+ClaudeSonnet,hle,flat/n.s.,2000,35.0,3.45,61.550000000000004
+GPT5_4,hle,capitulator,2000,0.0,96.55,3.45
+GPT5_4Mini,hle,capitulator,2000,0.0,97.85000000000001,2.15
+GPT5_4Nano,hle,capitulator,2000,3.65,84.75,11.600000000000001
+GeminiFlash,hle,capitulator,2000,0.0,100.0,0.0

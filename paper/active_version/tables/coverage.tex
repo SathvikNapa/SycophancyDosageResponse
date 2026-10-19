@@ -1,0 +1,28 @@
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.15}
+\caption{(Model, dataset) coverage after HLE follow-up runs.
+  $\checkmark$ = full pressure runs completed and eligibility
+  criterion satisfied; $\ast$ = excluded \emph{ex ante} under the
+  eligibility criterion (single populated group: $H{=}0$ only or
+  $H{<}0$ only); $\varnothing$ = pressure runs completed, but every
+  $T_0$-correct dialogue falls in a single group (Claude Haiku on
+  HLE: all $29$ are $H{=}0$), so no certain-vs.-uncertain contrast
+  is defined.}
+\label{tab:coverage}
+\begin{tabular}{l ccc}
+\toprule
+\textbf{Model} & \textbf{MMLU-Pro} & \textbf{GPQA-Diam.} & \textbf{HLE} \\
+\midrule
+Claude 4.5 Haiku     & $\checkmark$ & $\checkmark$ & $\varnothing$ \\
+Claude 4.6 Sonnet    & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+GPT-5.4              & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+GPT-5.4 Mini         & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+GPT-5.4 Nano         & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Gemini 3.5 Flash     & $\ast$       & $\ast$       & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\end{table*}

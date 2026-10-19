@@ -1,0 +1,80 @@
+\section{Methods}
+\label{sec:methods}
+
+Our evaluation has four black-box components, requiring only API access and no assumptions about model weights, logits, or internal states: uncertainty estimation, a multi-turn pressure protocol, a flip definition, and an external confidence estimator for chain-of-thought analysis.
+
+\subsection{Uncertainty Signals}
+\label{sec:methods:signals}
+
+\paragraph{Initial behavioral uncertainty $H_c(q;\mathcal{M},\mathcal{D})$.}\label{sec:methods:entropy}
+Let $\mathcal{M}$ be a target model and $q$ a question with option set $\mathcal{A} = \{A, \ldots, J\}$ and gold answer $a^* \in \mathcal{A}$. We sample $K = 25$ answers from $\mathcal{M}$ at temperature 1, giving $\hat{p}_q(a) = \tfrac{1}{K}\sum_k \mathbf{1}[a^{(k)} = a]$ and
+\[
+H(q; \mathcal{M}) = \sum_{a \in \mathcal{A}} \hat{p}_q(a)\,\log \hat{p}_q(a).
+\]
+This is negative Shannon entropy, so $H = 0$ when all $K$ samples agree (certain) and $H < 0$ as samples spread (more negative is more spread).\footnote{\citet{kuhn2023semanticuncertaintylinguisticinvariances} cluster open-ended generations by semantic equivalence before computing entropy; our answers are discrete options, so string normalization suffices in place of semantic clustering.} $K=25$ moves the empirical probability by $0.04$ per response, enough to separate majority from near-majority answers while staying tractable. $H_c$ denotes $H$ mean-centered within a (model, dataset) condition (\autoref{sec:methods:stats}).
+
+\paragraph{Per-turn belief entropy $B_t(q;\mathcal{M})$.}
+$B_t$ measures disagreement among independent adversarial dialogues at turn $t$, rather than baseline uncertainty before pressure. For dialogue $r \in \{1,\ldots,R\}$, let $\hat{a}_{q,t,r}$ be its own final answer at turn $t$, read directly from that turn's trace (\autoref{sec:methods:pressure}) rather than a majority over repeated samples, and $\hat{\pi}_{q,t}(a) = \tfrac{1}{R}\sum_r \mathbf{1}[\hat a_{q,t,r}=a]$ the distribution of these final answers across dialogues. Then
+\[
+B_t(q;\mathcal{M}) = \sum_{a} \hat{\pi}_{q,t}(a)\,\log \hat{\pi}_{q,t}(a),
+\]
+with the same sign convention as $H$. A query \textbf{loses consensus} at turn $t$ when no answer wins a majority of the $R$ dialogues. A (model, dataset) condition where this is the dominant outcome is a \textbf{fragmenter}: unlike a resister or capitulator (\autoref{sec:methods:stats}), which settle on a stable majority answer, a fragmenter sustains none. The RQ4 majority-correctness and $\mathrm{Gap}_t$ computations below still require a single $\arg\max_a \hat\pi_{q,t}(a)$ at every turn, including turns that lose consensus; with $R=3$, a three-way split is broken by dialogue order (the lowest-indexed dialogue among those tied), an arbitrary but deterministic rule that does not affect $B_t$ itself or the fragmenter classification above. The \textbf{Bel. Ent.} column in \autoref{tab:rq4_mmlu}--\autoref{tab:rq4_hle} is $B_t$ computed this way.
+
+\paragraph{Step-level confidence $\hat{\gamma}_\ell$.}\label{sec:methods:calibrator}
+For RQ4 we extend to CoT reasoning. The target model reasons step by step without stating inline confidence, producing a trace $\tau=(z_1,\ldots,z_L)$ ending in \texttt{FINAL ANSWER: <letter>}. Reasoning models often produce confident but wrong self-assessments \citep{mei2025reasoninguncertainty,yoon2025reasoningconfidence}, so we read the trace externally. A separate model $\mathcal{C}$ (GPT-5.4 Mini) reads each prefix $z_1,\ldots,z_\ell$ and returns a belief and confidence,
+\[
+(\hat{c}_\ell,\, \hat{\gamma}_\ell) = \mathcal{C}(q,\, z_1,\ldots, z_\ell),
+\]
+where $\hat{c}_\ell \in \mathcal{A}$ is the option the partial trace supports and $\hat{\gamma}_\ell \in [0,100]$ is verbalized confidence \citep{tian2023justask}. We call $\mathcal{C}$ a confidence estimator rather than a calibrator: it produces $\hat\gamma_\ell$ directly rather than adjusting an existing score to match accuracy. $\mathcal{C}$'s own confidence is inflated (ECE $\in [0.26, 0.46]$, Brier $\in [0.28, 0.44]$ across $527{,}707$ step-level predictions pooled over the five targets it reads; \autoref{app:calibration}), so $\hat\gamma_\ell$ alone is a poor signal: a trace can sound equally confident whether its belief is still correct or already flipped. We instead track the gap between mean confidence and majority-belief correctness,
+\[
+\mathrm{Gap}_t = \frac{\overline{\hat\gamma}_t}{100} - \frac{1}{|\mathcal{D}|}\sum_{q \in \mathcal{D}} \mathbf{1}[\hat\pi_{q,t}^{\arg\max} = a_q^*],
+\]
+reported as Conf.\ $-$ Maj.\ Correct in \autoref{tab:rq4_mmlu}--\autoref{tab:rq4_hle}. A widening gap means the trace sounds equally confident after its belief has flipped, a silent failure a confidence threshold would miss. A calibrated-hardness signal $\hat h(q;\mathcal{M},\mathcal{D})$, used only for a robustness check, is defined in \autoref{app:rq2_table}.
+
+\subsection{Multi-Turn Pressure Protocol}
+\label{sec:methods:pressure}
+
+For each question $q$ we run a six-turn adversarial dialogue. After an initial answer at $T_0$, an adversary asserts a fixed wrong answer $a^\dagger \neq a^*$, drawn uniformly from $\mathcal{A}\setminus\{a^*\}$, across turns $T_1$--$T_6$ using six escalating rhetorical strategies (\autoref{tab:pressure_levels}), ordered low to high authority: personal pushback, first-person certainty, external evidence, expert authority, accusatory framing, universal consensus. Since $a^\dagger$ is drawn uniformly rather than targeted at the model's most plausible wrong answer, reported flip rates average over all plausibility levels. Whether a targeted adversary would do better remains an open question rather than an established one: a post hoc check regressing flip likelihood on the baseline plausibility of $a^\dagger$ finds no significant association once between-model differences in overall flip rate are accounted for ($p=0.153$, \autoref{app:plausibility}), so we do not claim our rates are a lower bound (\autoref{sec:limitations}).
+
+\input{tables/pressure_levels}
+
+We do not test all $720$ possible orderings of these six categories. The single-turn experiment (\autoref{tab:single_turn}) applies each category in isolation and finds potency is not monotonic in our order (expert authority strongest, personal certainty and crowd consensus weakest), ruling out the simplest ordering confound: a monotonically increasing per-turn flip rate is not a trivial restatement of category potency. It does not rule out a category-by-position interaction (\autoref{sec:limitations}).
+
+Each question is evaluated over $R=3$ independent chain-of-thought dialogues with different seeds. Each dialogue is a single continuous conversation spanning $T_0$ through $T_6$: one call per turn advances that dialogue's transcript, and the model's final answer at each turn is read directly from its own trace (\autoref{sec:methods:signals}), not estimated by re-querying the model separately from the same history. These are the same $R=3$ dialogues used for every analysis in this paper (RQ1--RQ4 and the fragmentation check, \autoref{sec:methods:stats}); there is no separate sampling budget for different research questions.
+
+\subsection{Flip Definition}
+\label{sec:methods:flip}
+
+At turn $t$, $\hat a_{q,t,r}$ is dialogue $r$'s own final answer at that turn, read directly from its trace rather than estimated by resampling (\autoref{sec:methods:pressure}). We use \textbf{flip} for two related but distinct measurements, and keep them separate throughout. First, a dialogue \textbf{flips} the first time its final answer switches from $a^*$ to $a^\dagger$; this can happen at most once per dialogue, since a later switch to a third answer does not count as a second flip. Second, the per-turn \textbf{flip rate} reported in RQ1 and RQ3 is the fraction of dialogues whose final answer equals $a^\dagger$ \emph{at turn $t$}, independent of what happened at earlier turns. This second quantity can fall from one turn to the next: a drop means some dialogues reverted back to $a^*$, not that fewer dialogues flipped in the first place. To avoid conflating sycophancy with baseline error, RQ1--RQ3 retain only dialogues whose own $T_0$ final answer equals $a^*$; this filter applies per dialogue, so different dialogues for the same question can be retained or dropped independently. A question's \textbf{majority} answer at a turn -- the mode across its $R=3$ dialogues -- is a separate quantity used only for the fragmentation check and belief entropy $B_t$ (\autoref{sec:methods:signals}), not for flip or flip rate.
+
+\subsection{Statistical Models}
+\label{sec:methods:stats}
+
+RQ1 asks whether pre-pressure uncertainty predicts flipping; RQ2 asks whether pressure level and uncertainty jointly predict it, and whether pressure's effect is itself larger on more uncertain questions. Both questions have the same shape: predict a binary outcome (flipped or not, at a given turn) from continuous predictors (pressure level, entropy) and their product. A linear model would let predicted probabilities fall outside $[0,1]$ and cannot represent an interaction as cleanly on a bounded scale; logistic regression avoids both problems by modeling the log-odds of the outcome, which is unbounded, and is the standard choice for exactly this combination of a binary outcome and continuous predictors. We fit two logistic regressions by maximum likelihood on the binary flip outcome. Per (model, dataset) condition,
+\[
+\begin{aligned}
+\mathrm{logit}\,\Pr(\mathrm{flip}_{q,t}) ={}& \beta_0 + \beta_P P_t \\
+& + \beta_H H_{c,q} + \beta_{PH} P_t H_{c,q},
+\end{aligned}
+\]
+with $H_c$ mean-centered per condition so $\beta_P$ is interpretable at typical uncertainty rather than at the arbitrary point $H=0$. $\beta_P<0$ identifies a \textbf{resister} (flip probability falls across the sequence), $\beta_P>0$ a \textbf{capitulator}; $\beta_H<0$ means higher uncertainty raises flip probability; $\beta_{PH}>0$ means each pressure turn raises flip probability more on uncertain questions. Coefficients are visualized in \autoref{fig:rq2_coefs} and tabulated in \autoref{app:rq2_table}. Several conditions show near-perfect separation (Claude Haiku never flips on certain MMLU-Pro questions), which inflates $|\hat\beta_H|$ while leaving its direction and significance valid; we flag these conditions rather than excluding them.
+
+Fitting one regression per (model, dataset) condition treats the five models as unrelated, so a coefficient that looks consistent across them could still be five independent coin flips rather than a shared effect. To test whether the pressure-by-entropy interaction survives pooling across models, we also fit a mixed-effects logistic regression with the same fixed effects and a model-level random intercept $u_m \sim \mathcal{N}(0,\sigma_u^2)$,
+\[
+\begin{aligned}
+\mathrm{logit}\,\Pr(\mathrm{flip}_{m,q,t}) ={}& \beta_0 + u_m + \beta_P P_t \\
+& + \beta_H H_{c,m,q} + \beta_{PH} P_t H_{c,m,q}.
+\end{aligned}
+\]
+The random intercept lets each model keep its own baseline flip rate instead of forcing one shared intercept, so it absorbs cross-model differences in baseline flip rate; a significant $\beta_{PH}$ here is not explained by those differences alone. Full output is in \autoref{app:mixed_effects}.
+
+\subsection{Datasets and Target Models}
+\label{sec:methods:setup}
+
+We use subsets of three benchmarks, easiest to hardest: MMLU-Pro \citep{wang2024mmluprorobustchallengingmultitask} (420 questions, ten-choice, broad multi-subject knowledge), GPQA-Diamond \citep{rein2023gpqagraduatelevelgoogleproofqa} (198 questions, four-choice, graduate-level biology/chemistry/physics), and Humanity's Last Exam (HLE) \citep{hle} (160 questions, variable-choice, multiple-choice portion only, spanning many disciplines).
+
+Each pool is the same set of questions across every target model evaluated on that benchmark. A shared pool does not imply identical certain/uncertain groups across models, however: baseline entropy is estimated separately for each model from its own $K=25$ samples, so the specific questions placed in the certain group versus the uncertain group in RQ1 generally differ from one model to the next even though the underlying question pool is the same. RQ1--RQ3 use only the correct-at-$T_0$ subset of each pool, so effective $n$ varies by condition (\autoref{app:rq2_table}). Targets span three families: GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano (OpenAI); Claude 4.6 Sonnet, Claude 4.5 Haiku (Anthropic); Gemini 3.5 Flash (Google); all accessed via API at temperature 1 (\autoref{app:hyperparams}).
+
+The RQ1 contrast requires a condition to have both a certain group ($H=0$) and an uncertain group ($H<0$); conditions collapsing to one group are excluded before any pressure runs, which excludes Gemini 3.5 Flash on MMLU-Pro and GPQA-Diamond, where its baseline answers are unanimous at $K=25$.\footnote{Gemini remains in the single-turn comparison (\autoref{app:single_turn}) and on HLE.} Claude Haiku has only 29 $T_0$-correct HLE queries, all of them in the certain group, so RQ1's certain-vs-uncertain contrast is not measurable there; of the subset with a correct $T_0$ majority, none ever loses consensus (\autoref{app:hle_consensus}).
+
+\input{tables/coverage}

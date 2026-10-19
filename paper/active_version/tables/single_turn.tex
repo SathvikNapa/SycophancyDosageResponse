@@ -1,0 +1,28 @@
+\begin{table}[t]
+\centering
+\small\setlength{\tabcolsep}{2.5pt}
+\caption{Single-turn flip rate (\%) per pressure category on MMLU-Pro
+  (T0-correct only). Each cell is the fraction of one-turn dialogues in
+  which the target model flipped from its correct $T_0$ answer to the
+  planted wrong answer after exactly one pressure prompt of the named
+  category. Columns: \emph{All} = pooled across categories;
+  \emph{Disag.} = personal disagreement; \emph{Cert.} = personal
+  certainty; \emph{Soc.} = social proof; \emph{Exp.} = expert authority;
+  \emph{Accus.} = personal accusation; \emph{Crowd} = crowd consensus.
+  Bold entry per row highlights the most-effective category.}
+\label{tab:single_turn}
+\begin{tabular}{l rrrrrrr}
+\toprule
+\textbf{Model} & \textbf{All} & \textbf{Disag.} & \textbf{Cert.} & \textbf{Soc.} & \textbf{Exp.} & \textbf{Accus.} & \textbf{Crowd} \\
+\midrule
+Claude Haiku      & 61.5 & 83.3 & 25.0 & 75.3 & \textbf{86.6} & 60.3 & 38.3 \\
+Claude Sonnet     & 48.0 & 70.2 & 10.1 & 74.3 & \textbf{96.7} & 25.0 & 11.4 \\
+GPT-5.4           & 24.4 & 31.0 &  5.4 & 35.0 & \textbf{53.0} & 13.1 &  8.8 \\
+GPT-5.4 Mini      & 46.9 & 68.7 & 18.0 & 65.4 & \textbf{73.7} & 36.3 & 19.1 \\
+GPT-5.4 Nano      & 46.7 & 65.7 & 12.7 & 75.6 & \textbf{86.4} & 24.4 & 15.6 \\
+Gemini 3.5 Flash  & 15.7 & 10.7 &  1.0 & 29.7 & \textbf{45.0} &  5.2 &  2.5 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\\{\footnotesize Reproducibility: \texttt{run\_single\_turn\_pressure.py}, MMLU-Pro only}
+\end{table}

@@ -1,0 +1,51 @@
+\section{Experiments}
+
+We design four experiments to answer our four research questions.
+
+\paragraph{Experiment 1: Uncertainty and susceptibility (RQ1).}
+We test whether questions with non-zero baseline entropy flip at a higher rate than questions with zero entropy. Using the Shannon entropy per-question $H(q;\mathcal{M})$, we split the correct-at-$T_0$ questions into a \textbf{certain} group ($H = 0$) and an \textbf{uncertain} group ($H < 0$). For each model, we compute the per-question flip rate across pressure turns $T_1$--$T_6$ within each group. Because the question is the unit of analysis and flip rates are bounded proportions, we compare the two groups with a Mann-Whitney $U$ test and report Wilson $95\%$ confidence intervals on each group's flip rate.
+%This certain-vs.-uncertain contrast is well-defined on MMLU-Pro and partially on GPQA-Diamond, but collapses on HLE where most cells have no $H = 0$ questions, an eligibility failure documented in \autoref{sec:methods:setup}.
+
+
+
+\paragraph{Experiment 2: Pressure-uncertainty interaction (RQ2).} \label{sec:exp2}
+We test whether escalating social pressure increases the likelihood of sycophantic flipping and whether this effect depends on the model's initial uncertainty, i.e., whether the marginal effect of each additional pressure turn varies with baseline entropy. We fit a per-model logistic regression predicting the per-turn flip outcome from pressure level $P$ (the turn index $\in \{1,\ldots,6\}$, defined in \autoref{tab:pressure_levels}), mean-centered baseline entropy $H_c = H(q;\mathcal{M}) - \bar{H}_{\mathcal{M},\mathcal{D}}$, and their interaction $P \times H_c$:
+{\[
+P(\mathrm{flip}) =
+\sigma\!\left(\hat\beta_0 + \hat\beta_P \cdot P
+              + \hat\beta_H \cdot H_c
+              + \hat\beta_{PH} \cdot P H_c\right)
+\]}
+
+The specification and the mean-centering rationale are given in \autoref{sec:methods:stats}. 
+% Here, we describe the interpretive claims we attach to each coefficient. % Mean-centering entropy per model-dataset cell ensures that $\hat\beta_P$ is the pressure slope at the \textbf{typical} uncertainty level ($H_c = 0$) rather than at behavioral certainty ($H = 0$), which is unrepresentative for models where most questions are uncertain. 
+% $\hat\beta_H < 0$ indicates that higher-than-average uncertainty raises baseline flip probability. A positive interaction $\hat\beta_{PH} > 0$ indicates that the marginal effect of each additional pressure turn is \emph{larger} on already-uncertain questions, i.e., pressure amplifies pre-existing uncertainty rather than acting independently of it. $\hat\beta_{PH} \approx 0$ indicates a uniform pressure effect regardless of uncertainty, and $\hat\beta_{PH} < 0$ would indicate pressure is \emph{less} effective on uncertain questions, a negative interaction pattern we do not observe significantly in any cell.
+
+\paragraph{Experiment 3: Per-model trajectories (RQ3).}
+\label{sec:exp3}
+We test whether the uncertainty-conditioned pressure effect of \autoref{sec:exp2} holds across model families and capability tiers, using two complementary analyses. 
+
+\emph{Mixed-effects regression.} We fit the mixed-effects extension defined in \autoref{sec:methods:stats}, which retains the fixed effects from Experiment 2 ($P$, $H_c$, and $P \times H_c$) and adds a model-level random intercept $u_m$. The random intercept absorbs baseline susceptibility differences between models. Some are simply more sycophantic than others at $T_0$, while the fixed-effect slopes are estimated as single pooled values across the panel. A significant pooled $\hat\beta_{PH}$ then indicates an interaction that is not absorbed by between-model intercept variation. Because \autoref{sec:exp2} shows non-negligible heterogeneity in the per-model $\hat\beta_{PH}$ estimates, we do not interpret the pooled slope as a universal constant but as a weighted summary; the accompanying meta-analytic robustness check (\autoref{sec:results}) reports the between-model variance $\hat\tau^2$ and a sensitivity analysis excluding cells with near-perfect separation.
+
+\emph{Per-model empirical slope.} We compute per-model flip rates at every turn $T_1$--$T_6$ and fit a linear trend, measured in percentage points per turn, within each model. This is a model-agnostic descriptive measure that ignores the entropy regressor and asks only whether flip rate rises or falls under sustained pressure. The sign of the per-model slope partitions models into two qualitative groups namely \textbf{resisters}, whose negative slope means susceptibility declines under sustained pressure, and \textbf{capitulators}, whose positive slope means susceptibility grows. We analyze the resulting taxonomy in \autoref{sec:results}.
+
+\paragraph{Experiment 4: Reasoning-trace capitulation (RQ4).}
+We examine whether eventual flip is detectable in the chain-of-thought (CoT) trace before the final answer changes. Using the free-form CoT prompt and external calibrator described in \autoref{sec:methods:calibrator}, we obtain per-step beliefs $\hat{c}_\ell$ and confidences $\hat{\gamma}_\ell$ for every reasoning trace in every dialogue. From these we compute, at each pressure turn $t$: (i) the belief entropy over the run-level majority beliefs, which measures how much the calibrator's read of the reasoning trace fluctuates across repeated samples; (ii) the majority-belief correctness, i.e.\ the fraction of runs whose final calibrated belief matches $a^*$; and (iii) the mean calibrated confidence at the final reasoning step, from which we derive the overconfidence gap (Conf.\ $-$ Maj.\ Correct). Together these three quantities let us ask whether the trace exposes capitulation earlier than the final answer trajectory and whether confidence tracks the underlying belief shift, and, on the hardest benchmark, whether the model preserves a coherent belief state at all. This last criterion forms the operational basis for the fragmenter classification introduced in \autoref{sec:results}.
+
+\paragraph{Single-turn robustness check.} To rule out that the uncertainty effect (RQ1) and the pressure-category ordering (RQ3) are specific to multi-turn accumulation, we run a single-turn variant: for each (model, question, pressure category) cell we issue exactly one pressure prompt after the baseline answer and record whether the model flips. Results are reported in \autoref{tab:single_turn}.
+
+\paragraph{Experiment 5: Ensemble calibration (ECE).}
+To quantify the miscalibration identified in Experiment~4, we compute the Expected Calibration Error (ECE) of the external calibrator's confidence scores when aggregated across $K$ runs. Concretely, for each (question, turn) cell we define the \emph{ensemble confidence} as
+\[
+  \bar\gamma_{q,t} = \frac{1}{K}\sum_{k=1}^{K} \hat\gamma^{(k)}_{\text{final}}
+\]
+where $\hat\gamma^{(k)}_{\text{final}}$ is the calibrator's confidence at the
+final reasoning step of run $k$.
+The binary label is whether each individual run's final belief matches the
+gold answer $a^*$ (i.e., correctness is measured per-run, not per-majority).
+ECE is then the standard binned calibration error
+% \[
+%   \mathrm{ECE} = \sum_{b=1}^{B} \frac{|S_b|}{N}
+%     \bigl|\overline{\mathrm{acc}}(S_b) - \overline{\bar\gamma}(S_b)\bigr|
+% \] 
+over $B = 10$ equal-width bins on $[0,1]$. This framing is stricter than per-step ECE (used in Experiment~4) because averaging $K$ runs reduces per-question estimation noise while using per-run labels preserves the full sample size. A well-calibrated system would have ECE near zero at every turn; rising ECE under pressure provides a single-number summary of how severely social pressure degrades the reliability of the model's expressed confidence.

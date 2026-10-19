@@ -1,0 +1,7 @@
+model,label_mmlu_pro,label_gpqa_diamond,label_hle,changed_across_benchmarks
+ClaudeHaiku,resister,flat/n.s.,flat/n.s.,True
+ClaudeSonnet,resister,capitulator,flat/n.s.,True
+GPT5_4,capitulator,capitulator,capitulator,False
+GPT5_4Mini,capitulator,capitulator,capitulator,False
+GPT5_4Nano,capitulator,capitulator,capitulator,False
+GeminiFlash,,,capitulator,False

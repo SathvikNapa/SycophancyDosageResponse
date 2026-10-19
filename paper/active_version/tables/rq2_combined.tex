@@ -1,0 +1,54 @@
+\begin{table*}[t]
+\centering
+\caption{RQ2: discrete-time survival coefficients (\autoref{sec:exp2}), cluster-robust by question, under both uncertainty parameterizations, side by side.
+  \emph{Left half} ($H_c$-based, main-text specification):
+  $\mathrm{logit}\,P(\mathrm{flip}) =
+   \beta_0 + \beta_P P + \beta_H H_c + \beta_{PH} P\!\cdot\!H_c$,
+  where $H_c = H - \bar{H}_{\text{model,dataset}}$ is the mean-centered
+  baseline entropy (Section~\ref{sec:methods:entropy}).
+  \emph{Right half} ($\hat h$-based, robustness check):
+  $\mathrm{logit}\,P(\mathrm{flip}) =
+   \beta_0 + \beta_P P + \beta_{\hat h} \hat h + \beta_{P\hat h} P\!\cdot\!\hat h$,
+  where $\hat h \in [0, 1]$ is the calibrated hardness
+  (Appendix~\ref{app:rq2_table}).
+  $\hat h$ has the \emph{opposite} orientation to $H$
+  ($\hat h {=} 0$ = certain-correct, $\hat h {=} 1$ = certain-error),
+  so the sign of $\hat\beta_{\hat h}$ is expected to be
+  opposite to the sign of $\hat\beta_H$ in every condition.}
+\label{tab:rq2_combined}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll ccc ccc}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{$H_c$-based (main)}} & \multicolumn{3}{c}{\textbf{$\hat h$-based (robustness)}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Dataset} & \textbf{Model} & $\hat\beta_P$ & $\hat\beta_H$ & $\hat\beta_{PH}$ & $\hat\beta_P$ & $\hat\beta_{\hat h}$ & $\hat\beta_{P\hat h}$ \\
+\midrule
+\multirow{5}{*}{MMLU-Pro}
+ & Claude Haiku & $-$1.706$^{***}$ & $-$1.578$^\dagger$ & $+$0.290$^\dagger$ & $-$1.565$^{***}$ & $+$2.702$^\dagger$ & $-$0.475$^\dagger$ \\
+  & Claude Sonnet & $-$1.161$^{***}$ & $-$0.512$^\dagger$ & $-$0.117$^\dagger$ & $-$1.185$^{***}$ & $+$1.130$^\dagger$ & $+$0.143$^\dagger$ \\
+  & GPT-5.4 & $-$0.156$^{***}$ & $-$1.319$^{*}$ & $+$0.216$^\dagger$ & $-$0.087$^\dagger$ & $+$1.608$^\dagger$ & $-$0.228$^\dagger$ \\
+  & GPT-5.4 Mini & $-$0.309$^{***}$ & $-$0.781$^\dagger$ & $+$0.163$^\dagger$ & $-$0.319$^{***}$ & $+$0.401$^\dagger$ & $-$0.055$^\dagger$ \\
+  & GPT-5.4 Nano & $-$0.490$^{***}$ & $-$1.428$^\dagger$ & $+$1.085$^\dagger$ & $+$1.012$^\dagger$ & $+$2.544$^\dagger$ & $-$2.315$^{*}$ \\
+\addlinespace
+\midrule
+\multirow{5}{*}{GPQA-Diamond}
+ & Claude Haiku & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Claude Sonnet & $-$0.874$^{***}$ & $-$0.489$^\dagger$ & $-$0.254$^\dagger$ & $-$0.996$^{***}$ & $+$1.043$^\dagger$ & $+$0.560$^\dagger$ \\
+  & GPT-5.4 & $-$0.226$^{***}$ & $-$0.680$^\dagger$ & $+$0.135$^\dagger$ & $+$0.028$^\dagger$ & $+$1.642$^\dagger$ & $-$0.526$^\dagger$ \\
+  & GPT-5.4 Mini & $-$0.458$^{***}$ & $-$1.679$^\dagger$ & $+$0.190$^\dagger$ & $-$1.179$^\dagger$ & $+$2.370$^\dagger$ & $+$1.219$^\dagger$ \\
+  & GPT-5.4 Nano & $-$0.904$^{***}$ & $+$2.271$^\dagger$ & $-$0.370$^\dagger$ & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+\addlinespace
+\midrule
+\multirow{6}{*}{HLE}
+ & Claude Haiku & \multicolumn{3}{c}{--- \tiny{(no flip variance)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Claude Sonnet & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & GPT-5.4 & $-$0.466$^{*}$ & $-$0.120$^\dagger$ & $-$0.260$^\dagger$ & $-$0.289$^{}$ & $+$0.365$^\dagger$ & $-$0.236$^\dagger$ \\
+  & GPT-5.4 Mini & \multicolumn{3}{c}{--- \tiny{(separation)}} & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & GPT-5.4 Nano & $-$0.785$^{*}$ & $+$0.583$^\dagger$ & $-$0.184$^\dagger$ & \multicolumn{3}{c}{--- \tiny{($\hat h$ collapsed)}} \\
+  & Gemini 3.5 Flash & $-$0.375$^{***}$ & $-$2.593$^{***}$ & $+$0.611$^{*}$ & $+$0.573$^\dagger$ & $+$7.764$^{**}$ & $-$1.923$^\dagger$ \\
+\bottomrule 
+\end{tabular}
+\vspace{2pt}
+{\footnotesize\emph{Significance:} $^{***}p{<}0.001$, $^{**}p{<}0.01$, $^{*}p{<}0.05$, $^\dagger p{\geq}0.05$ -- all raw, \emph{unadjusted} for the 22 identifiable (model, dataset, parameterization) cells in this table; neither $\hat\beta_{PH}$/$\hat\beta_{P\hat h}$ cell starred above survives Holm correction across those 22 tests (see \autoref{app:rq2_table} discussion). \emph{Reproducibility:} \texttt{analysis/rq2\_appendix.py}. Claude Haiku on GPQA-Diamond remains separation-flagged under both parameterizations even with complete data; see \autoref{app:firth} for why Firth's correction cannot resolve it (that check does not cover the HLE cells below, which were not part of its original scope). HLE's smaller per-model samples leave more cells unidentifiable: Claude Sonnet and GPT-5.4 Mini are separation-flagged under both parameterizations, and Claude Haiku has no flip variance to fit at all (every dialogue is wrong at every turn, the same condition documented in \autoref{app:rq3_slopes}).}
+\end{table*}

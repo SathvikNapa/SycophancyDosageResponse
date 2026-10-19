@@ -1,0 +1,166 @@
+REVISED EXPERIMENTAL PLAN FOR NAACL 2027
+========================================
+
+OBJECTIVE
+---------
+Strengthen the existing paper through improved statistical robustness, confidence-extraction validation, and behavioral-taxonomy reliability while retaining the original four research questions and corrected R=3 Chain-of-Thought pipeline.
+
+Core benchmarks: MMLU-Pro, GPQA-Diamond, Humanity's Last Exam (HLE).
+Target models: The six models in the corrected manuscript.
+General approach: Prioritize reanalysis of existing data; add focused validation experiments where necessary. Account for repeated turns, questions, replicates, and multiple testing.
+
+RQ1: HOW DOES BASELINE UNCERTAINTY RELATE TO SUSCEPTIBILITY?
+-----------------------------------------------------------
+Experiment 1.1 — Effect magnitude, direction, and heterogeneity
+- For each model–benchmark cell, compute delta = P(flip | uncertain) - P(flip | certain).
+- Report percentage-point difference, confidence interval, unadjusted and Holm-adjusted p-values.
+- Summarize positive and negative associations, median and range of effects, and model/benchmark variation.
+- Plot all 16 cell-level effects in a forest plot.
+- Avoid claiming a reliable individual effect when no comparison survives Holm correction.
+
+Experiment 1.2 — Pooled uncertainty effect
+- Fit a pooled logistic/hierarchical model from question-level outcomes.
+- Account for model, benchmark, and repeated observations of questions.
+- Report average marginal risk difference, model- and benchmark-specific estimates, and heterogeneity.
+- Treat new post-hoc pooled analyses as exploratory unless validated independently.
+
+Experiment 1.3 — Single-turn robustness
+- Retain corrected single-turn results.
+- Contrast baseline uncertainty associations after the first intervention and across multiple turns.
+- Check whether the direction is present independently of accumulated conversation.
+
+RQ1 outputs: forest plot, pooled estimate table, heterogeneity analysis, single-turn check.
+
+RQ2: HOW DO PRESSURE AND UNCERTAINTY JOINTLY INFLUENCE SUSCEPTIBILITY?
+-------------------------------------------------------------------
+Experiment 2.1 — Main effects and interaction
+- Fit an appropriately clustered or mixed-effects logistic model with uncertainty, pressure, uncertainty × pressure, and model/benchmark effects.
+- Use categorical pressure/turn terms unless a linear pressure effect is justified.
+- Report coefficients, intervals, odds ratios, and marginal probability differences.
+- Handle question-level dependence and replicated/longitudinal observations.
+
+Experiment 2.2 — Interaction robustness
+- Reproduce corrected benchmark interaction coefficients (MMLU-Pro 0.20; GPQA 0.03; HLE 0.45, as reported).
+- Examine pooled and benchmark-specific interaction estimates when justified.
+- Report uncertainty intervals and avoid conflating lack of statistical significance with evidence of no effect.
+
+Experiment 2.3 — Persona, authority, pressure, and tone controls
+- Run a 2 × 2 × 2 design: authority (none/expert), pressure (mild/strong), tone (cooperative/confrontational).
+- Keep question, proposed answer, factual content, and evaluation procedure constant across matched conditions.
+- Use multiple matched paraphrases and randomize prompts.
+- Evaluate answer flips, post-intervention correctness, main effects, and preselected interactions (authority × pressure, authority × tone).
+- Do not infer a self-presentation mechanism solely from observed cue effects.
+
+Experiment 2.4 — Resistance versus stubbornness
+- Compare misleading corrections to genuinely correct corrections on a smaller matched subset.
+- Distinguish initially correct and initially incorrect response populations.
+- Measure inappropriate capitulation and appropriate correction separately.
+- Ask whether social framing improves discrimination or simply increases answer persistence.
+
+RQ2 outputs: pressure-response plots, regression tables, persona effects, correct-versus-incorrect feedback results.
+
+RQ3: ARE RESISTERS, CAPITULATORS, AND FRAGMENTERS STABLE BEHAVIORAL PATTERNS?
+---------------------------------------------------------------------------
+Experiment 3.1 — Within-benchmark bootstrap stability
+- Resample QUESTION IDs with replacement 2,000 times per benchmark.
+- Preserve all R=3 replicates and turns for each sampled question.
+- Recompute the exact behavioral metrics and reapply the original classification procedure each time.
+- If classification is cluster-derived, refit clustering in each replicate and align cluster identities.
+- Report frequencies of each model receiving each label, along with intervals for underlying metrics.
+- Freeze or justify the classification rule; avoid thresholds chosen solely to produce desired groups.
+
+Experiment 3.2 — Cross-benchmark stability
+- Compare every model's labels on MMLU-Pro, GPQA, and HLE.
+- Separate within-benchmark sampling stability from between-benchmark transportability.
+- Test whether HLE changes classification; interpret changes as possible benchmark-conditioned behavior.
+
+Experiment 3.3 — Fragmentation robustness
+- Recompute fragmentation using corrected R=3 consensus definitions.
+- Report eligible-question denominators and confidence intervals.
+- Retain corrected entropy-versus-fragmentation analysis.
+- Contrast Gemini's substantial HLE fragmentation with zero observed eligible HLE fragmentation for Claude models without universalizing the pattern.
+
+Experiment 3.4 — Classification sensitivity
+- Evaluate plausible threshold changes or cluster-specification choices.
+- Consider pairwise co-clustering frequencies, adjusted Rand index, and leave-one-model-out sensitivity where appropriate.
+- With six models, emphasize transparent model-level metrics over universal cluster claims.
+
+RQ3 outputs: label-retention table, cross-benchmark transition table, fragmentation estimates and classification sensitivity.
+
+RQ4: HOW DO CORRECTNESS AND REASONING-DERIVED CONFIDENCE EVOLVE?
+-------------------------------------------------------------
+Confidence is estimated by an EXTERNAL LLM from generated reasoning, not directly observed inside the target model. Use “reasoning-derived confidence” consistently.
+
+Experiment 4.1 — Cross-evaluator validation
+- Apply GPT-5.4 Mini and Claude Sonnet to the SAME reasoning traces with matched rubric and input visibility.
+- Report Spearman correlation, mean absolute difference, absolute agreement (e.g. suitable ICC), and agreement on within-question direction of change.
+- Compare scores and trajectories by target model and benchmark.
+
+Experiment 4.2 — Paired confidence changes
+- Compute delta C(i,t,judge) = C(i,t,judge) - C(i,0,judge).
+- Separate answer transitions: correct→correct, correct→incorrect, incorrect→correct, incorrect→incorrect.
+- Test whether both judges observe increases during correct→incorrect transitions.
+- Report clustered uncertainty intervals and paired effect sizes.
+
+Experiment 4.3 — Human expressed-certainty audit
+- Sample approximately 150–300 traces stratified across models, benchmarks, score ranges, and correctness transitions.
+- Have at least two blinded annotators rate certainty EXPRESSED IN THE REASONING.
+- Compare human ratings to both external evaluators.
+- Do not interpret this as validation of inaccessible internal model belief.
+
+Experiment 4.4 — Evaluator-input sensitivity
+- Compare reasoning-only, reasoning + answer, and full-context input conditions.
+- Test prompt/rubric variations and sensitivity to assertive versus hedged wording.
+- Identify possible contamination by adversarial context or rhetorical style.
+
+Experiment 4.5 — Correctness/confidence divergence
+- Plot paired correctness and reasoning-derived confidence trajectories by model and benchmark.
+- Report joint transitions and, if assessing calibration, clarify that the score being calibrated is a JUDGE-DERIVED proxy, not directly measured target-model belief.
+- Preserve the reported Claude Haiku/GPQA observation (correctness 0.646→0.025; extracted confidence 0.830→0.929), subject to cross-judge validation and correct inferential interpretation.
+
+RQ4 outputs: judge-agreement table, human validation results, input sensitivity, joint confidence/correctness plots.
+
+CROSS-CUTTING METHODOLOGICAL CHECKS
+----------------------------------
+1. Explain why one target model was tested on only 80 questions: constraint, sampling method, representativeness, and limitations.
+2. Compare matched 80-question samples from larger evaluations against full-size results; note that this does not remedy selection bias.
+3. Use question-clustered bootstraps or suitable mixed models; do not treat R=3 replicates and turns as independent questions.
+4. Preserve the original family of 16 Holm-corrected comparisons. Declare new exploratory testing families and report effect sizes plus intervals.
+5. Freeze model versions, benchmark question IDs, prompts, sampling parameters, output extraction, confidence rubrics, exclusions, and analysis code.
+6. Regenerate every main-text and appendix table/figure with the corrected final pipeline.
+7. Conduct a complete human-only editorial pass to remove repetition, drafting artifacts, unsupported generalizations, and prose explaining previous edits.
+
+PROPOSED PAPER STRUCTURE
+------------------------
+1. Introduction and motivation
+2. Experimental setup and measurement definitions
+3. RQ1 — Uncertainty-associated susceptibility
+4. RQ2 — Pressure, interaction, and social framing
+5. RQ3 — Behavioral regimes and stability
+6. RQ4 — Correctness and externally estimated reasoning-derived confidence
+7. Discussion and implications
+8. Limitations
+9. Appendix — Full regression estimates, bootstrap analyses, prompt templates, and robustness checks
+
+EXECUTION PRIORITIES
+--------------------
+P0: Audit/freeze corrected R=3 results.
+P0: Compare GPT-5.4 Mini and Claude Sonnet confidence judges (if outputs exist).
+P0: Pooled RQ1/RQ2 analyses, with appropriate dependence and exploratory labeling.
+P0: RQ3 question-level bootstrap taxonomy stability.
+P1: Human expressed-certainty validation.
+P1: Confidence-evaluator prompt/input sensitivity experiments.
+P1: Persona factorial and correct-versus-incorrect correction controls (new target-model inference).
+P1: 80-question sample-size sensitivity analysis.
+P2: Further models or benchmarks only if they address a specific unresolved validity/generalization concern.
+
+TARGET CONTRIBUTIONS (TO BE VERIFIED)
+------------------------------------
+C1: Quantitative characterization of baseline uncertainty and susceptibility, including heterogeneity and limitations of significance.
+C2: Pressure effects and social-context moderators, with honest interaction estimates.
+C3: Descriptive resistance, capitulation, and fragmentation regimes plus classification stability and benchmark dependence.
+C4: Correctness versus reasoning-derived confidence trajectories, supported by external-judge and human validation.
+
+BOTTOM LINE
+-----------
+Retain RQ1–RQ4. The goal is not to make every originally hypothesized effect statistically significant, but to demonstrate that the final pipeline yields robust, appropriately qualified evidence about conversational misdirection. Prioritize transparent methods, construct validity, and measured claims over additional breadth.
