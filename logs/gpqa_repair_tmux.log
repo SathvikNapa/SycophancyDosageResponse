@@ -1,0 +1,51 @@
+srun: job 1815011 queued and waiting for resources
+srun: job 1815011 has been allocated resources
+host=c04 start=Mon Oct  5 01:01:52 PM EDT 2026
+[regen] moved 45 incomplete checkpoints aside -> experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_stale_fill_checkpoints_20261005_130225
+bin0: 28 validated items, 42 samples need filling
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+  ...5/42 samples filled
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+  ...10/42 samples filled
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+  ...15/42 samples filled
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+  ...20/42 samples filled
+  ...25/42 samples filled
+  ...30/42 samples filled
+  ...35/42 samples filled
+  ...40/42 samples filled
+  ...42/42 samples filled
+  bin0: patched 13 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_validated_fill_20261005_150427
+bin1: 1 validated items, 3 samples need filling
+  ...3/3 samples filled
+  bin1: patched 1 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_validated_fill_20261005_150647
+[recal] bin0: 147 traces, 1111 steps missing confidence
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+    [retry] giving up on GPT5_4Mini after 5 attempts: HTTPStatusError: Client error '429 Too Many Requests' for url 'https://gateway.engineering.jhu.edu/gateway/compat/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
+  ...20/147 traces recalibrated
+  ...40/147 traces recalibrated
+  ...60/147 traces recalibrated
+  ...80/147 traces recalibrated
+  ...100/147 traces recalibrated
+  ...120/147 traces recalibrated
+  ...140/147 traces recalibrated
+  ...147/147 traces recalibrated
+[recal] bin0: steps still missing confidence after recal: 3
+  bin0: wrote recal results for 30 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_recal_20261005_160640
+[recal] bin1: 26 traces, 509 steps missing confidence
+  ...20/26 traces recalibrated
+  ...26/26 traces recalibrated
+[recal] bin1: steps still missing confidence after recal: 0
+  bin1: wrote recal results for 5 items, backup at experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin/_backup_before_gpqa_recal_20261005_163657
+exit=0 end=Mon Oct  5 04:37:00 PM EDT 2026

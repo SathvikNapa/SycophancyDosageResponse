@@ -1,0 +1,10 @@
+host=c04 start=Tue Oct  6 02:41:11 PM EDT 2026
+21 cells; 4179 unique non-letter samples to extract (6200 already cached)
+  ...200/4179 extracted
+  ...400/4179 extracted
+  ...600/4179 extracted
+  ...800/4179 extracted
+  ...1000/4179 extracted
+  ...1200/4179 extracted
+  ...1400/4179 extracted
+slurmstepd: error: *** JOB 1815811 ON c04 CANCELLED AT 2026-10-06T15:55:44 ***

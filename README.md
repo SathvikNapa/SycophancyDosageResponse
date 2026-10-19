@@ -19,21 +19,24 @@ Grounded findings: what's significant, what's model-specific, and what
 isn't, rather than one pooled headline number. Full discussion and every
 other figure/table is in the paper.
 
-**Uncertainty predicts flips; pressure×uncertainty is a small, mostly
-model-specific effect.** Questions that induce disagreement across
+**Uncertainty predicts flips; the pressure×uncertainty interaction does
+not survive correction.** Questions that induce disagreement across
 repeated sampling flip at roughly twice the rate of unanimous questions.
-The pressure×uncertainty interaction is individually significant for
-Claude Sonnet, but not for the other four models on their own; a
-random-effects meta-analysis is what recovers a significant *pooled*
-effect across models:
+The pressure×uncertainty interaction crosses the uncorrected p<0.05
+threshold in only two of 22 estimable (model, dataset, parameterization)
+cells, and neither survives Holm correction; pooling across models gives
+three point estimates (one per benchmark), none of which exclude zero
+(p = 0.073, 0.864, 0.102):
 
 <img src="docs/assets/figures/rq2_coefs.png" width="700" alt="RQ2 per-model regression coefficients">
 <img src="docs/assets/figures/interaction_heterogeneity.png" width="700" alt="Random-effects meta-analysis of the pressure by uncertainty interaction">
 
-**Models split into resisters and capitulators, consistently across
-benchmarks.** Flip rate under escalating pressure (T1–T6) either falls
-(resister) or rises (capitulator) per model, and that split holds on both
-MMLU-Pro and GPQA-Diamond rather than being an artifact of one dataset:
+**Models split into resisters and capitulators, but the split is
+benchmark-dependent, not a fixed model trait.** Flip rate under
+escalating pressure (T1–T6) either falls (resister) or rises
+(capitulator) per model; most models keep the same label across
+MMLU-Pro and GPQA-Diamond, but Claude Sonnet flips from resister to
+capitulator between the two, and the picture changes further on HLE:
 
 <img src="docs/assets/figures/rq3_combined.png" width="700" alt="Flip rate across pressure turns T1-T6, resisters vs capitulators">
 

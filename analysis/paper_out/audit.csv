@@ -1,0 +1,17 @@
+model,dataset,pool,questions,dialogues,complete,incomplete,t0_correct_complete,certain_questions,baseline
+ClaudeHaiku,mmlu_pro,420,420,1260,1260,0,948,278,reparsed
+ClaudeSonnet,mmlu_pro,420,420,1260,1256,4,1099,382,reparsed
+GPT5_4,mmlu_pro,420,420,1260,1260,0,1036,341,reparsed
+GPT5_4Mini,mmlu_pro,420,420,1260,1260,0,947,298,reparsed
+GPT5_4Nano,mmlu_pro,420,420,1260,1260,0,825,373,reparsed
+ClaudeHaiku,gpqa_diamond,198,198,594,594,0,373,74,reparsed
+ClaudeSonnet,gpqa_diamond,198,198,594,563,31,468,140,reparsed
+GPT5_4,gpqa_diamond,198,198,594,594,0,456,150,reparsed
+GPT5_4Mini,gpqa_diamond,198,198,594,593,1,343,139,reparsed
+GPT5_4Nano,gpqa_diamond,198,198,594,594,0,325,163,reparsed
+ClaudeHaiku,hle,160,160,480,478,2,45,160,reparsed
+ClaudeSonnet,hle,160,160,480,467,13,103,116,reparsed
+GPT5_4,hle,160,160,480,480,0,78,105,reparsed
+GPT5_4Mini,hle,160,160,480,480,0,48,113,reparsed
+GPT5_4Nano,hle,160,160,480,479,1,47,124,reparsed
+GeminiFlash,hle,160,160,480,471,9,201,75,reparsed

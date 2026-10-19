@@ -1,0 +1,38 @@
+srun: job 1815234 queued and waiting for resources
+srun: job 1815234 has been allocated resources
+host=c04 start=Mon Oct  5 09:50:23 PM EDT 2026
+21 cells; 10379 unique non-letter samples to extract (0 already cached)
+  ...200/10379 extracted
+  ...400/10379 extracted
+  ...600/10379 extracted
+  ...800/10379 extracted
+  ...1000/10379 extracted
+  ...1200/10379 extracted
+  ...1400/10379 extracted
+  ...1600/10379 extracted
+  ...1800/10379 extracted
+  ...2000/10379 extracted
+  ...2200/10379 extracted
+  ...2400/10379 extracted
+  ...2600/10379 extracted
+  ...2800/10379 extracted
+  ...3000/10379 extracted
+  ...3200/10379 extracted
+  ...3400/10379 extracted
+  ...3600/10379 extracted
+  ...3800/10379 extracted
+  ...4000/10379 extracted
+  ...4200/10379 extracted
+  ...4400/10379 extracted
+  ...4600/10379 extracted
+  ...4800/10379 extracted
+  ...5000/10379 extracted
+  ...5200/10379 extracted
+  ...5400/10379 extracted
+  ...5600/10379 extracted
+  ...5800/10379 extracted
+  ...6000/10379 extracted
+  ...6200/10379 extracted
+slurmstepd: error: *** STEP 1815234.0 ON c04 CANCELLED AT 2026-10-06T14:40:35 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: c04: task 0: Terminated

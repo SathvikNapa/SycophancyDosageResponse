@@ -1,0 +1,296 @@
+% \begin{table*}[t]
+% \centering
+% \caption{RQ4: CoT reasoning trajectory at baseline ($T_0$) and at four
+%   pressure turns ($T_2$, $T_4$, $T_5$, $T_6$), by dataset.
+%   \emph{Bel.\ Ent.}: belief entropy over run-level majority beliefs
+%   ($0$ = maximally consistent; more negative = more spread).
+%   \emph{Maj.\ Correct}: fraction of runs whose majority belief matches
+%   the gold answer.
+%   \emph{Conf.}: mean estimated confidence at the final reasoning step
+%   ($0$--$1$).
+%   \emph{Gap}: Conf.\ $-$ Maj.\ Correct (overconfidence).}
+% \label{tab:rq4}
+% \small\setlength{\tabcolsep}{4pt}
+% \begin{tabular}{lllcccc}
+% \toprule
+% \textbf{Dataset} & \textbf{Model} & \textbf{Turn} & \textbf{Bel.\ Ent.} & \textbf{Maj.\ Correct} & \textbf{Conf.} & \textbf{Gap} \\
+% \midrule
+% \multirow{25}{*}{MMLU-Pro}
+%   & \multirow{5}{*}{Claude Haiku}  & $T_0$ & $-$0.312 & 0.618 & 0.802 & 0.184 \\
+%   &                                & $T_2$ & $-$0.471 & 0.323 & 0.763 & 0.441 \\
+%   &                                & $T_4$ & $-$0.395 & 0.178 & 0.826 & 0.647 \\
+%   &                                & $T_5$ & $-$0.434 & 0.282 & 0.819 & 0.537 \\
+%   &                                & $T_6$ & $-$0.371 & 0.318 & 0.854 & 0.536 \\
+% \addlinespace
+%   & \multirow{5}{*}{Claude Sonnet} & $T_0$ & $-$0.281 & 0.629 & 0.801 & 0.173 \\
+%   &                                & $T_2$ & $-$0.447 & 0.415 & 0.771 & 0.355 \\
+%   &                                & $T_4$ & $-$0.424 & 0.298 & 0.787 & 0.489 \\
+%   &                                & $T_5$ & $-$0.471 & 0.354 & 0.788 & 0.434 \\
+%   &                                & $T_6$ & $-$0.427 & 0.401 & 0.807 & 0.406 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4}       & $T_0$ & $-$0.306 & 0.666 & 0.824 & 0.158 \\
+%   &                                & $T_2$ & $-$0.453 & 0.570 & 0.770 & 0.201 \\
+%   &                                & $T_4$ & $-$0.446 & 0.470 & 0.771 & 0.301 \\
+%   &                                & $T_5$ & $-$0.454 & 0.474 & 0.772 & 0.298 \\
+%   &                                & $T_6$ & $-$0.451 & 0.484 & 0.775 & 0.291 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Mini}  & $T_0$ & $-$0.345 & 0.624 & 0.815 & 0.191 \\
+%   &                                & $T_2$ & $-$0.439 & 0.521 & 0.773 & 0.252 \\
+%   &                                & $T_4$ & $-$0.438 & 0.453 & 0.777 & 0.323 \\
+%   &                                & $T_5$ & $-$0.402 & 0.443 & 0.784 & 0.341 \\
+%   &                                & $T_6$ & $-$0.398 & 0.434 & 0.784 & 0.350 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Nano}  & $T_0$ & $-$0.385 & 0.578 & 0.800 & 0.222 \\
+%   &                                & $T_2$ & $-$0.429 & 0.485 & 0.784 & 0.299 \\
+%   &                                & $T_4$ & $-$0.442 & 0.417 & 0.774 & 0.357 \\
+%   &                                & $T_5$ & $-$0.432 & 0.421 & 0.772 & 0.350 \\
+%   &                                & $T_6$ & $-$0.420 & 0.428 & 0.776 & 0.348 \\
+% \midrule
+% \multirow{25}{*}{GPQA-Diam.}
+%   & \multirow{5}{*}{Claude Haiku}  & $T_0$ & $-$0.311 & 0.527 & 0.630 & 0.103 \\
+%   &                                & $T_2$ & $-$0.216 & 0.072 & 0.718 & 0.646 \\
+%   &                                & $T_4$ & $-$0.179 & 0.074 & 0.852 & 0.778 \\
+%   &                                & $T_5$ & $-$0.174 & 0.059 & 0.827 & 0.768 \\
+%   &                                & $T_6$ & $-$0.138 & 0.011 & 0.886 & 0.875 \\
+% \addlinespace
+%   & \multirow{5}{*}{Claude Sonnet} & $T_0$ & $-$0.301 & 0.462 & 0.600 & 0.139 \\
+%   &                                & $T_2$ & $-$0.222 & 0.153 & 0.614 & 0.460 \\
+%   &                                & $T_4$ & $-$0.343 & 0.468 & 0.658 & 0.190 \\
+%   &                                & $T_5$ & $-$0.371 & 0.418 & 0.655 & 0.237 \\
+%   &                                & $T_6$ & $-$0.326 & 0.443 & 0.658 & 0.215 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4}       & $T_0$ & $-$0.304 & 0.510 & 0.748 & 0.238 \\
+%   &                                & $T_2$ & $-$0.404 & 0.421 & 0.725 & 0.303 \\
+%   &                                & $T_4$ & $-$0.400 & 0.322 & 0.726 & 0.404 \\
+%   &                                & $T_5$ & $-$0.391 & 0.333 & 0.722 & 0.389 \\
+%   &                                & $T_6$ & $-$0.392 & 0.340 & 0.727 & 0.388 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Mini}  & $T_0$ & $-$0.304 & 0.455 & 0.736 & 0.281 \\
+%   &                                & $T_2$ & $-$0.360 & 0.369 & 0.724 & 0.355 \\
+%   &                                & $T_4$ & $-$0.349 & 0.308 & 0.729 & 0.422 \\
+%   &                                & $T_5$ & $-$0.275 & 0.296 & 0.743 & 0.422 \\
+%   &                                & $T_6$ & $-$0.318 & 0.327 & 0.742 & 0.414 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Nano}  & $T_0$ & $-$0.343 & 0.430 & 0.725 & 0.295 \\
+%   &                                & $T_2$ & $-$0.357 & 0.357 & 0.732 & 0.375 \\
+%   &                                & $T_4$ & $-$0.354 & 0.306 & 0.732 & 0.427 \\
+%   &                                & $T_5$ & $-$0.344 & 0.298 & 0.733 & 0.436 \\
+%   &                                & $T_6$ & $-$0.339 & 0.284 & 0.731 & 0.447 \\
+% \midrule
+% \multirow{18}{*}{HLE}
+%   & Claude Haiku                   & $T_0$ & $-$0.078 & 0.138 & 0.774 & 0.636 \\
+%   &                                & \multicolumn{5}{c}{$T_2$--$T_6$: consensus lost (see fragmenter analysis)} \\
+% \addlinespace
+%   & \multirow{5}{*}{Claude Sonnet} & $T_0$ & $-$0.053 & 0.255 & 0.794 & 0.538 \\
+%   &                                & $T_2$ &     ---  & 0.500 & 0.642 & 0.142 \\
+%   &                                & $T_4$ &     ---  & 0.000 & 0.548 & 0.548 \\
+%   &                                & $T_5$ &     ---  & 0.500 & 0.568 & 0.068 \\
+%   &                                & $T_6$ &     ---  & 0.500 & 0.626 & 0.126 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4}       & $T_0$ & $-$0.101 & 0.175 & 0.880 & 0.705 \\
+%   &                                & $T_2$ &     ---  & 0.086 & 0.849 & 0.763 \\
+%   &                                & $T_4$ &     ---  & 0.035 & 0.869 & 0.833 \\
+%   &                                & $T_5$ &     ---  & 0.052 & 0.865 & 0.813 \\
+%   &                                & $T_6$ &     ---  & 0.076 & 0.869 & 0.792 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Mini}  & $T_0$ & $-$0.156 & 0.109 & 0.880 & 0.771 \\
+%   &                                & $T_2$ &     ---  & 0.019 & 0.878 & 0.858 \\
+%   &                                & $T_4$ &     ---  & 0.006 & 0.908 & 0.902 \\
+%   &                                & $T_5$ &     ---  & 0.006 & 0.905 & 0.899 \\
+%   &                                & $T_6$ &     ---  & 0.013 & 0.912 & 0.899 \\
+% \addlinespace
+%   & \multirow{5}{*}{GPT-5.4 Nano}  & $T_0$ & $-$0.162 & 0.100 & 0.842 & 0.742 \\
+%   &                                & $T_2$ &     ---  & 0.012 & 0.843 & 0.832 \\
+%   &                                & $T_4$ &     ---  & 0.007 & 0.886 & 0.879 \\
+%   &                                & $T_5$ &     ---  & 0.000 & 0.883 & 0.883 \\
+%   &                                & $T_6$ &     ---  & 0.000 & 0.882 & 0.882 \\
+% \addlinespace
+%   & \multirow{5}{*}{Gemini 3.5 Flash} & $T_0$ & $-$0.053 & 0.450 & 0.978 & 0.528 \\
+%   &                                & $T_2$ &     ---  & 0.316 & 0.987 & 0.671 \\
+%   &                                & $T_4$ &     ---  & 0.179 & 0.986 & 0.807 \\
+%   &                                & $T_5$ &     ---  & 0.154 & 0.989 & 0.835 \\
+%   &                                & $T_6$ &     ---  & 0.277 & 0.990 & 0.713 \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}
+
+
+\begin{table}[t]
+\centering
+\caption{RQ4: CoT reasoning trajectory for MMLU-Pro.}
+\label{tab:rq4_mmlu}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Model} & \textbf{Turn} & \textbf{Bel.\ Ent.} & \textbf{Maj.\ Correct} & \textbf{Conf.} & \textbf{Gap} \\
+\midrule
+\multirow{5}{*}{Claude Haiku}
+  & $T_0$ & $-$0.142 & 0.757 & 0.923 & 0.166 \\
+  & $T_2$ & $-$0.187 & 0.257 & 0.861 & 0.604 \\
+  & $T_4$ & $-$0.128 & 0.124 & 0.917 & 0.793 \\
+  & $T_5$ & $-$0.186 & 0.248 & 0.913 & 0.665 \\
+  & $T_6$ & $-$0.177 & 0.290 & 0.931 & 0.640 \\
+\addlinespace
+\multirow{5}{*}{Claude Sonnet}
+  & $T_0$ & $-$0.053 & 0.883 & 0.936 & 0.053 \\
+  & $T_2$ & $-$0.145 & 0.427 & 0.916 & 0.488 \\
+  & $T_4$ & $-$0.097 & 0.298 & 0.927 & 0.629 \\
+  & $T_5$ & $-$0.123 & 0.383 & 0.934 & 0.551 \\
+  & $T_6$ & $-$0.124 & 0.451 & 0.945 & 0.494 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4}
+  & $T_0$ & $-$0.071 & 0.829 & 0.956 & 0.127 \\
+  & $T_2$ & $-$0.110 & 0.738 & 0.946 & 0.208 \\
+  & $T_4$ & $-$0.162 & 0.483 & 0.941 & 0.458 \\
+  & $T_5$ & $-$0.147 & 0.514 & 0.946 & 0.431 \\
+  & $T_6$ & $-$0.148 & 0.521 & 0.947 & 0.426 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Mini}
+  & $T_0$ & $-$0.156 & 0.767 & 0.944 & 0.177 \\
+  & $T_2$ & $-$0.155 & 0.612 & 0.939 & 0.327 \\
+  & $T_4$ & $-$0.169 & 0.390 & 0.941 & 0.551 \\
+  & $T_5$ & $-$0.144 & 0.410 & 0.945 & 0.535 \\
+  & $T_6$ & $-$0.137 & 0.412 & 0.947 & 0.535 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Nano}
+  & $T_0$ & $-$0.242 & 0.671 & 0.925 & 0.254 \\
+  & $T_2$ & $-$0.158 & 0.471 & 0.918 & 0.447 \\
+  & $T_4$ & $-$0.136 & 0.324 & 0.924 & 0.601 \\
+  & $T_5$ & $-$0.143 & 0.338 & 0.923 & 0.585 \\
+  & $T_6$ & $-$0.134 & 0.348 & 0.924 & 0.576 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\footnotesize
+\emph{Bel.\ Ent.}: belief entropy over run-level majority beliefs
+($0$ = maximally consistent; more negative = more spread).
+\emph{Maj.\ Correct}: fraction of runs whose majority belief matches the gold answer.
+\emph{Conf.}: mean estimated final-step confidence.
+\emph{Gap}: Conf.\ $-$ Maj.\ Correct.
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{RQ4: CoT reasoning trajectory for GPQA-Diamond.}
+\label{tab:rq4_gpqa}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Model} & \textbf{Turn} & \textbf{Bel.\ Ent.} & \textbf{Maj.\ Correct} & \textbf{Conf.} & \textbf{Gap} \\
+\midrule
+\multirow{5}{*}{Claude Haiku}
+  & $T_0$ & $-$0.257 & 0.646 & 0.830 & 0.184 \\
+  & $T_2$ & $-$0.069 & 0.051 & 0.832 & 0.781 \\
+  & $T_4$ & $-$0.070 & 0.025 & 0.895 & 0.869 \\
+  & $T_5$ & $-$0.074 & 0.040 & 0.891 & 0.850 \\
+  & $T_6$ & $-$0.076 & 0.025 & 0.929 & 0.904 \\
+\addlinespace
+\multirow{5}{*}{Claude Sonnet}
+  & $T_0$ & $-$0.104 & 0.838 & 0.890 & 0.052 \\
+  & $T_2$ & $-$0.117 & 0.239 & 0.868 & 0.629 \\
+  & $T_4$ & $-$0.110 & 0.096 & 0.895 & 0.799 \\
+  & $T_5$ & $-$0.104 & 0.131 & 0.900 & 0.770 \\
+  & $T_6$ & $-$0.107 & 0.184 & 0.918 & 0.734 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4}
+  & $T_0$ & $-$0.157 & 0.773 & 0.929 & 0.156 \\
+  & $T_2$ & $-$0.195 & 0.631 & 0.928 & 0.297 \\
+  & $T_4$ & $-$0.148 & 0.278 & 0.915 & 0.637 \\
+  & $T_5$ & $-$0.167 & 0.313 & 0.918 & 0.605 \\
+  & $T_6$ & $-$0.173 & 0.359 & 0.923 & 0.564 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Mini}
+  & $T_0$ & $-$0.240 & 0.611 & 0.900 & 0.289 \\
+  & $T_2$ & $-$0.153 & 0.318 & 0.910 & 0.592 \\
+  & $T_4$ & $-$0.116 & 0.187 & 0.919 & 0.732 \\
+  & $T_5$ & $-$0.169 & 0.195 & 0.920 & 0.726 \\
+  & $T_6$ & $-$0.120 & 0.247 & 0.924 & 0.676 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Nano}
+  & $T_0$ & $-$0.333 & 0.561 & 0.876 & 0.316 \\
+  & $T_2$ & $-$0.196 & 0.348 & 0.888 & 0.540 \\
+  & $T_4$ & $-$0.131 & 0.232 & 0.906 & 0.673 \\
+  & $T_5$ & $-$0.124 & 0.247 & 0.909 & 0.662 \\
+  & $T_6$ & $-$0.130 & 0.247 & 0.906 & 0.658 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\footnotesize
+\emph{Bel.\ Ent.}: belief entropy over run-level majority beliefs
+($0$ = maximally consistent; more negative = more spread).
+\emph{Maj.\ Correct}: fraction of runs whose majority belief matches the gold answer.
+\emph{Conf.}: mean estimated final-step confidence.
+\emph{Gap}: Conf.\ $-$ Maj.\ Correct.
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{RQ4: CoT reasoning trajectory for HLE.}
+\label{tab:rq4_hle}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Model} & \textbf{Turn} & \textbf{Bel.\ Ent.} & \textbf{Maj.\ Correct} & \textbf{Conf.} & \textbf{Gap} \\
+\midrule
+\multirow{5}{*}{Claude Haiku}
+  & $T_0$ & $-$0.384 & 0.087 & 0.796 & 0.709 \\
+  & $T_2$ & $-$0.055 & 0.000 & 0.860 & 0.860 \\
+  & $T_4$ & $-$0.032 & 0.006 & 0.923 & 0.916 \\
+  & $T_5$ & $-$0.023 & 0.000 & 0.923 & 0.923 \\
+  & $T_6$ & $-$0.016 & 0.000 & 0.945 & 0.945 \\
+\addlinespace
+\multirow{5}{*}{Claude Sonnet}
+  & $T_0$ & $-$0.268 & 0.234 & 0.806 & 0.572 \\
+  & $T_2$ & $-$0.052 & 0.020 & 0.888 & 0.868 \\
+  & $T_4$ & $-$0.017 & 0.013 & 0.920 & 0.907 \\
+  & $T_5$ & $-$0.042 & 0.013 & 0.922 & 0.909 \\
+  & $T_6$ & $-$0.046 & 0.020 & 0.938 & 0.918 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4}
+  & $T_0$ & $-$0.257 & 0.163 & 0.887 & 0.725 \\
+  & $T_2$ & $-$0.237 & 0.087 & 0.906 & 0.818 \\
+  & $T_4$ & $-$0.109 & 0.013 & 0.917 & 0.904 \\
+  & $T_5$ & $-$0.117 & 0.025 & 0.915 & 0.890 \\
+  & $T_6$ & $-$0.169 & 0.037 & 0.912 & 0.875 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Mini}
+  & $T_0$ & $-$0.340 & 0.100 & 0.872 & 0.772 \\
+  & $T_2$ & $-$0.113 & 0.031 & 0.911 & 0.879 \\
+  & $T_4$ & $-$0.040 & 0.006 & 0.933 & 0.927 \\
+  & $T_5$ & $-$0.039 & 0.006 & 0.930 & 0.923 \\
+  & $T_6$ & $-$0.044 & 0.006 & 0.929 & 0.922 \\
+\addlinespace
+\multirow{5}{*}{GPT-5.4 Nano}
+  & $T_0$ & $-$0.391 & 0.100 & 0.836 & 0.736 \\
+  & $T_2$ & $-$0.128 & 0.019 & 0.871 & 0.852 \\
+  & $T_4$ & $-$0.048 & 0.000 & 0.901 & 0.901 \\
+  & $T_5$ & $-$0.051 & 0.000 & 0.895 & 0.895 \\
+  & $T_6$ & $-$0.069 & 0.000 & 0.894 & 0.894 \\
+\addlinespace
+\multirow{5}{*}{Gemini 3.5 Flash}
+  & $T_0$ & $-$0.176 & 0.415 & 0.970 & 0.555 \\
+  & $T_2$ & $-$0.498 & 0.335 & 0.990 & 0.655 \\
+  & $T_4$ & $-$0.706 & 0.159 & 0.992 & 0.833 \\
+  & $T_5$ & $-$0.710 & 0.175 & 0.992 & 0.817 \\
+  & $T_6$ & $-$0.597 & 0.263 & 0.991 & 0.729 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\footnotesize
+\emph{Bel.\ Ent.}: belief entropy over run-level majority beliefs
+($0$ = maximally consistent; more negative = more spread).
+\emph{Maj.\ Correct}: fraction of runs whose majority belief matches the gold answer.
+\emph{Conf.}: mean estimated final-step confidence.
+\emph{Gap}: Conf.\ $-$ Maj.\ Correct.
+\end{table}

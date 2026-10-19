@@ -1,0 +1,60 @@
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+
+\caption{
+Single-turn flip rate (\%) by persona framing, pooled across all six
+pressure categories on $T_0$-correct MMLU-Pro and GPQA-Diamond questions.
+Odds ratios (ORs) compare novice, expert, and adversarial personas against
+the baseline using logistic regression with stratum and dose-category
+fixed effects; the pooled model additionally includes model fixed effects.
+$R=4$ dialogues per condition.
+$^{*}p<0.05$, $^{**}p<0.01$, $^{***}p<0.001$.
+}
+\label{tab:persona}
+
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{\textbf{Flip rate (\%)}} 
+& \multicolumn{2}{c}{\textbf{OR vs.\ baseline}} \\
+\cmidrule(lr){2-5}
+\cmidrule(lr){6-7}
+\textbf{Model}
+& \textbf{Base}
+& \textbf{Nov.}
+& \textbf{Exp.}
+& \textbf{Adv.}
+& \textbf{Nov./Exp.}
+& \textbf{Adv.} \\
+\midrule
+Claude Sonnet
+& 65.4 & 66.1 & 63.0 & 29.0
+& 1.05\,/\,0.84
+& 0.08$^{***}$ \\
+
+GPT-5.4 Mini
+& 70.8 & 71.1 & 69.4 & 33.3
+& 1.02\,/\,0.91
+& 0.10$^{***}$ \\
+
+\midrule
+Pooled (model FE)
+& 69.1 & 69.5 & 67.4 & 32.0
+& 1.03\,/\,0.89$^{*}$
+& 0.10$^{***}$ \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{2pt}
+{\scriptsize
+$n=6{,}720$ for Claude Sonnet and $n=14{,}400$ for GPT-5.4 Mini.
+Reproducibility:
+\texttt{scripts/run\_persona\_credibility.py};
+\texttt{analysis/persona\_credibility\_analysis.py}.
+}
+
+\end{table}

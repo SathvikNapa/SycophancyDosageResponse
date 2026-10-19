@@ -1,0 +1,139 @@
+mmlu_pro: canonical pool 420 questions
+done ClaudeHaiku/mmlu_pro
+done ClaudeSonnet/mmlu_pro
+done GPT5_4/mmlu_pro
+done GPT5_4Mini/mmlu_pro
+done GPT5_4Nano/mmlu_pro
+gpqa_diamond: canonical pool 198 questions
+done ClaudeHaiku/gpqa_diamond
+done ClaudeSonnet/gpqa_diamond
+done GPT5_4/gpqa_diamond
+done GPT5_4Mini/gpqa_diamond
+done GPT5_4Nano/gpqa_diamond
+hle: canonical pool 160 questions
+done ClaudeHaiku/hle
+done ClaudeSonnet/hle
+done GPT5_4/hle
+done GPT5_4Mini/hle
+done GPT5_4Nano/hle
+done GeminiFlash/hle
+
+== AUDIT
+       model      dataset  pool  questions  dialogues  complete  incomplete  t0_correct_complete  certain_questions baseline
+ ClaudeHaiku     mmlu_pro   420        420       1260      1260           0                  948                278 reparsed
+ClaudeSonnet     mmlu_pro   420        420       1260      1256           4                 1099                382 reparsed
+      GPT5_4     mmlu_pro   420        420       1260      1260           0                 1036                341 reparsed
+  GPT5_4Mini     mmlu_pro   420        420       1260      1260           0                  947                298 reparsed
+  GPT5_4Nano     mmlu_pro   420        420       1260      1260           0                  825                373 reparsed
+ ClaudeHaiku gpqa_diamond   198        198        594       594           0                  373                 74 reparsed
+ClaudeSonnet gpqa_diamond   198        198        594       549          45                  459                140 reparsed
+      GPT5_4 gpqa_diamond   198        198        594       594           0                  456                150 reparsed
+  GPT5_4Mini gpqa_diamond   198        198        594       593           1                  343                139 reparsed
+  GPT5_4Nano gpqa_diamond   198        198        594       594           0                  325                163 reparsed
+ ClaudeHaiku          hle   160        160        480       478           2                   45                160 reparsed
+ClaudeSonnet          hle   160        160        480       461          19                  103                116 reparsed
+      GPT5_4          hle   160        160        480       480           0                   78                105 reparsed
+  GPT5_4Mini          hle   160        160        480       480           0                   48                113 reparsed
+  GPT5_4Nano          hle   160        160        480       479           1                   47                124 reparsed
+ GeminiFlash          hle   160        160        480       471           9                  201                 75 reparsed
+
+== RQ1 (ever-flip %, T0-correct dialogues)
+     dataset        model  rq1_n_q    cert     unc   delta  delta_lo  delta_hi  p_holm
+    mmlu_pro  ClaudeHaiku      349  89.866  95.307   5.441    -0.199    10.498   0.412
+    mmlu_pro ClaudeSonnet      378  70.809  83.529  12.721    -1.392    25.396   0.457
+    mmlu_pro       GPT5_4      360  43.986  55.828  11.842    -0.008    23.333   0.261
+    mmlu_pro   GPT5_4Mini      346  50.210  58.190   7.980    -3.829    18.726   0.500
+    mmlu_pro   GPT5_4Nano      320  55.281  40.625 -14.656   -29.926     1.338   1.000
+gpqa_diamond  ClaudeHaiku      152  98.182 100.000   1.818     0.000     5.921     NaN
+gpqa_diamond ClaudeSonnet      166  92.938 100.000   7.062     3.371    11.050     NaN
+gpqa_diamond       GPT5_4      171  67.486  68.889   1.403   -14.850    16.787   1.000
+gpqa_diamond   GPT5_4Mini      139  72.400  86.022  13.622    -0.069    26.224   0.412
+gpqa_diamond   GPT5_4Nano      146  59.231  44.615 -14.615   -32.815     6.299   1.000
+         hle  ClaudeHaiku       29 100.000     NaN     NaN       NaN       NaN     NaN
+         hle ClaudeSonnet       48  97.368 100.000   2.632     0.000     9.375     NaN
+         hle       GPT5_4       40  88.679  96.000   7.321    -4.814    20.755   0.641
+         hle   GPT5_4Mini       28  94.118 100.000   5.882     0.000    18.182     NaN
+         hle   GPT5_4Nano       35 100.000 100.000   0.000     0.000     0.000     NaN
+         hle  GeminiFlash       80  66.667  77.083  10.417    -6.134    26.996   0.556
+
+== RQ2 (discrete-time survival, clustered SEs)
+     dataset        model       bP     pP        bH     pH       bPH    pPH  separation
+    mmlu_pro  ClaudeHaiku  -1.7061 0.0000   -1.5783 0.1034    0.2899 0.6294       False
+    mmlu_pro ClaudeSonnet  -1.1609 0.0000   -0.5123 0.6935   -0.1166 0.8577       False
+    mmlu_pro       GPT5_4  -0.1557 0.0000   -1.3191 0.0217    0.2164 0.2110       False
+    mmlu_pro   GPT5_4Mini  -0.3086 0.0000   -0.7809 0.1048    0.1627 0.3034       False
+    mmlu_pro   GPT5_4Nano  -0.4905 0.0000   -1.4276 0.3450    1.0846 0.1670       False
+gpqa_diamond  ClaudeHaiku  -7.5935 1.0000  -57.6660 1.0000  -78.3109 1.0000        True
+gpqa_diamond ClaudeSonnet  -0.8735 0.0000   -0.4891 0.7420   -0.2541 0.5525       False
+gpqa_diamond       GPT5_4  -0.2259 0.0001   -0.6796 0.3160    0.1345 0.5406       False
+gpqa_diamond   GPT5_4Mini  -0.4582 0.0000   -1.6790 0.1722    0.1899 0.6779       False
+gpqa_diamond   GPT5_4Nano  -0.9037 0.0000    2.2707 0.0716   -0.3698 0.4886       False
+         hle  ClaudeHaiku      NaN    NaN       NaN    NaN       NaN    NaN       False
+         hle ClaudeSonnet -24.5239    NaN  -78.2106 1.0000  -87.6683 1.0000        True
+         hle       GPT5_4  -0.4658 0.0139   -0.1203 0.9478   -0.2600 0.7352       False
+         hle   GPT5_4Mini  14.7324    NaN -119.8323    NaN -119.9921    NaN        True
+         hle   GPT5_4Nano  -0.7850 0.0102    0.5830 0.8631   -0.1842 0.8637       False
+         hle  GeminiFlash  -0.3749 0.0000   -2.5930 0.0006    0.6106 0.0453       False
+
+== RQ2 pooled beta_PH (DerSimonian-Laird, separation-flagged cells excluded)
+     dataset  k  beta_PH      lo     hi      p  tau2
+    mmlu_pro  5   0.1999 -0.0190 0.4188 0.0735   0.0
+gpqa_diamond  4   0.0292 -0.3048 0.3632 0.8639   0.0
+         hle  3   0.4481 -0.0891 0.9853 0.1021   0.0
+
+== RQ3 (per-turn wrong %, transitions, trend)
+     dataset        model      T1      T6  c2w_T1  w2c_T2  slope  slope_p       label
+    mmlu_pro  ClaudeHaiku  85.443  63.502  85.443  13.951 -0.191    0.000    resister
+    mmlu_pro ClaudeSonnet  61.056  49.045  61.056  13.264 -0.054    0.000    resister
+    mmlu_pro       GPT5_4  13.707  38.417  13.707  26.761  0.314    0.000 capitulator
+    mmlu_pro   GPT5_4Mini  23.654  47.096  23.654  14.732  0.258    0.000 capitulator
+    mmlu_pro   GPT5_4Nano  29.697  47.636  29.697   3.673  0.186    0.000 capitulator
+gpqa_diamond  ClaudeHaiku  99.196  95.979  99.196   0.270 -0.355    0.078   flat/n.s.
+gpqa_diamond ClaudeSonnet  81.264  81.046  81.264   4.558  0.069    0.012 capitulator
+gpqa_diamond       GPT5_4  30.044  56.140  30.044  36.496  0.316    0.000 capitulator
+gpqa_diamond   GPT5_4Mini  47.813  62.099  47.813  13.415  0.173    0.000 capitulator
+gpqa_diamond   GPT5_4Nano  43.692  53.538  43.692   2.113  0.101    0.000 capitulator
+         hle  ClaudeHaiku 100.000 100.000 100.000   0.000    NaN      NaN   flat/n.s.
+         hle ClaudeSonnet  98.058  93.204  98.058   2.970 -0.197    0.201   flat/n.s.
+         hle       GPT5_4  62.821  80.769  62.821  10.204  0.293    0.001 capitulator
+         hle   GPT5_4Mini  77.083  93.750  77.083   2.703  0.443    0.008 capitulator
+         hle   GPT5_4Nano  91.489 100.000  91.489   0.000  0.660    0.000 capitulator
+         hle  GeminiFlash  36.318  45.771  36.318  23.288  0.171    0.000 capitulator
+
+== Fragmentation
+     dataset        model  frag_n_q  frag_pct_lost  frag_median_first_t
+    mmlu_pro  ClaudeHaiku       316           1.27                  4.0
+    mmlu_pro ClaudeSonnet       371           0.54                  3.5
+    mmlu_pro       GPT5_4       346           1.16                  2.5
+    mmlu_pro   GPT5_4Mini       318           3.14                  1.0
+    mmlu_pro   GPT5_4Nano       276           2.90                  1.5
+gpqa_diamond  ClaudeHaiku       125           0.80                  4.0
+gpqa_diamond ClaudeSonnet       164           1.22                  2.5
+gpqa_diamond       GPT5_4       153           1.31                  3.0
+gpqa_diamond   GPT5_4Mini       115           3.48                  2.0
+gpqa_diamond   GPT5_4Nano       109           1.83                  3.5
+         hle  ClaudeHaiku        13           0.00                  NaN
+         hle ClaudeSonnet        33           0.00                  NaN
+         hle       GPT5_4        24          16.67                  2.0
+         hle   GPT5_4Mini        17          11.76                  3.0
+         hle   GPT5_4Nano        10           0.00                  NaN
+         hle  GeminiFlash        66          45.45                  2.5
+
+== RQ4 (per-question means)
+     dataset        model  rq4_maj_correct_T0  rq4_maj_correct_T6  rq4_conf_T0  rq4_conf_T6  rq4_gap_T6
+    mmlu_pro  ClaudeHaiku               0.757               0.290        0.923        0.931       0.640
+    mmlu_pro ClaudeSonnet               0.883               0.451        0.936        0.945       0.494
+    mmlu_pro       GPT5_4               0.829               0.521        0.956        0.947       0.426
+    mmlu_pro   GPT5_4Mini               0.767               0.412        0.944        0.947       0.535
+    mmlu_pro   GPT5_4Nano               0.671               0.348        0.925        0.924       0.576
+gpqa_diamond  ClaudeHaiku               0.646               0.025        0.830        0.929       0.904
+gpqa_diamond ClaudeSonnet               0.838               0.184        0.890        0.918       0.734
+gpqa_diamond       GPT5_4               0.773               0.359        0.929        0.923       0.564
+gpqa_diamond   GPT5_4Mini               0.611               0.247        0.900        0.924       0.676
+gpqa_diamond   GPT5_4Nano               0.561               0.247        0.876        0.906       0.658
+         hle  ClaudeHaiku               0.088               0.000        0.796        0.945       0.945
+         hle ClaudeSonnet               0.234               0.020        0.806        0.938       0.918
+         hle       GPT5_4               0.162               0.038        0.887        0.912       0.875
+         hle   GPT5_4Mini               0.100               0.006        0.872        0.929       0.922
+         hle   GPT5_4Nano               0.100               0.000        0.836        0.894       0.894
+         hle  GeminiFlash               0.415               0.262        0.970        0.991       0.729

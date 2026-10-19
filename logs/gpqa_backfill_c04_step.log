@@ -1,0 +1,17 @@
+host=c04 start=Sun Oct  4 08:21:07 PM EDT 2026
+bin0: 29 validated items, 145 samples need filling
+  resuming: 10/145 samples already checkpointed
+  ...5/145 samples filled
+  ...10/145 samples filled
+  ...15/145 samples filled
+  ...20/145 samples filled
+  ...25/145 samples filled
+  ...30/145 samples filled
+  ...35/145 samples filled
+  ...40/145 samples filled
+  ...45/145 samples filled
+  ...50/145 samples filled
+  ...55/145 samples filled
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 1814346.2 ON c04 CANCELLED AT 2026-10-04T21:08:22 ***
+srun: error: c04: task 0: Terminated

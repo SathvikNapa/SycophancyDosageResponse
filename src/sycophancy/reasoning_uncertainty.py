@@ -57,15 +57,62 @@ class _OpenAIEncoder:
     """Drop-in replacement for SentenceTransformer that calls the OpenAI embeddings API."""
 
     _BATCH = 100  # stay well under the 2048-input limit
-    _MAX_CHARS = 24_000  # ~6 k tokens at 4 chars/token; well under the 8192-token API limit
+    _MAX_TOKENS = 8000  # API limit is 8192; leave margin for tokenizer/char-boundary slop
 
     def __init__(self, model: str) -> None:
+        global _BadRequestError
         try:
             import openai
+            from openai import BadRequestError as _BadRequestError
             self._client = openai.OpenAI()
         except ImportError:
             raise ImportError("pip install openai>=1.0")
         self._model = model
+        self._enc = None
+        try:
+            import tiktoken
+            self._enc = tiktoken.encoding_for_model(model)
+        except Exception:
+            pass  # exact-token truncation unavailable; _char_truncate falls back to a char estimate
+
+    def _char_truncate(self, text: str) -> str:
+        """Truncate to _MAX_TOKENS using exact tokenization when available. A char-ratio
+        guess (e.g. ~4 chars/token) silently fails on token-dense text -- heavy math
+        notation, LaTeX, Unicode sub/superscripts -- which is common in GPQA-style
+        reasoning traces, so this counts tokens directly rather than estimating."""
+        if self._enc is None:
+            return text[: self._MAX_TOKENS * 3]  # conservative fallback: ~3 chars/token
+        toks = self._enc.encode(text)
+        if len(toks) <= self._MAX_TOKENS:
+            return text
+        return self._enc.decode(toks[: self._MAX_TOKENS])
+
+    def _create(self, batch: List[str]):
+        """Calls the embeddings API, self-correcting on a too-long-input 400:
+        the per-item token estimate here is occasionally a little off from the
+        server's own count (tokenizer edge cases, decode/re-encode boundary
+        effects), so on that specific error this re-truncates just the
+        offending item -- named in the error as 'input[N]' -- more
+        aggressively and retries, rather than trusting one token estimate."""
+        attempt_batch = list(batch)
+        for _ in range(6):
+            try:
+                return self._client.embeddings.create(model=self._model, input=attempt_batch)
+            except _BadRequestError as e:
+                m = re.search(r"input\[(\d+)\]", str(e))
+                if not m or "maximum input length" not in str(e):
+                    raise
+                idx = int(m.group(1))
+                cur_toks = len(self._enc.encode(attempt_batch[idx])) if self._enc else self._MAX_TOKENS
+                shrink_to = max(50, min(cur_toks - 1, self._MAX_TOKENS) // 2)
+                attempt_batch[idx] = self._truncate_to(attempt_batch[idx], shrink_to)
+        raise RuntimeError(f"embeddings.create: could not shrink input[{idx}] under the API limit after 6 attempts")
+
+    def _truncate_to(self, text: str, n_tokens: int) -> str:
+        if self._enc is None:
+            return text[: n_tokens * 3]
+        toks = self._enc.encode(text)
+        return text if len(toks) <= n_tokens else self._enc.decode(toks[:n_tokens])
 
     def encode(
         self,
@@ -75,10 +122,8 @@ class _OpenAIEncoder:
     ) -> np.ndarray:
         batches: List[np.ndarray] = []
         for i in range(0, len(texts), self._BATCH):
-            batch = [t[: self._MAX_CHARS] for t in texts[i : i + self._BATCH]]
-            resp = self._client.embeddings.create(
-                model=self._model, input=batch
-            )
+            batch = [self._char_truncate(t) for t in texts[i : i + self._BATCH]]
+            resp = self._create(batch)
             arr = np.array([item.embedding for item in resp.data], dtype=np.float32)
             if normalize_embeddings:
                 norms = np.linalg.norm(arr, axis=1, keepdims=True)
@@ -297,13 +342,19 @@ def parse_reasoning_steps_freeform(
 # Last-step flip detection
 # ---------------------------------------------------------------------------
 
-def detect_last_step_flip(trace: ReasoningTrace) -> bool:
+def detect_last_step_flip(trace: ReasoningTrace) -> Optional[bool]:
     """
     True if the model reasoned to the correct belief at its last step
     but committed a different (wrong) final answer.
+
+    Returns None when the trace itself has no final answer (an empty or
+    failed generation — no API response, not a genuine non-flip). Callers
+    must exclude None from any mean/rate computation rather than treating
+    it as False; silently coding "no response" as "did not flip" dilutes
+    the rate with observations that were never actually made.
     """
-    if trace.gold_answer is None:
-        return False
+    if trace.gold_answer is None or trace.final_answer is None:
+        return None
     return (
         trace.last_step_belief == trace.gold_answer
         and trace.final_answer != trace.gold_answer
@@ -533,9 +584,10 @@ def build_uncertainty_trajectory(
             step_uncerts.append(su)
 
         turn_trajectories.append(step_uncerts)
-        last_step_flip_rates.append(
-            float(np.mean([detect_last_step_flip(t) for t in turn_traces]))
-        )
+        flip_flags = [
+            f for f in (detect_last_step_flip(t) for t in turn_traces) if f is not None
+        ]
+        last_step_flip_rates.append(float(np.mean(flip_flags)) if flip_flags else float("nan"))
 
     # Cross-turn comparison
     cross_turn = compare_trajectories_across_turns(

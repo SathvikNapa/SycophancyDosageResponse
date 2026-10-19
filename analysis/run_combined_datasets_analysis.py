@@ -169,8 +169,16 @@ for model in MODEL_ORDER:
             ev = em.get(query, {})
             for run_idx, run in enumerate(q.get("raw_runs", [])):
                 iw = run.get("is_wrong", []); tc = run.get("turn_categories", [None]*len(iw))
+                raw = run.get("raw_turns", [None] * len(iw))
                 fwt = run.get("first_wrong_turn", len(iw))
                 for turn, (wrong, cat) in enumerate(zip(iw, tc)):
+                    # An empty/failed generation (no raw_turns content) is not an
+                    # observation of resistance — it's no observation at all. Counting
+                    # it as flipped=0 silently dilutes the flip rate with dead API
+                    # calls rather than real model behavior, so it gets no row here,
+                    # exactly like backfill_flat_from_reasoning already does.
+                    if turn >= len(raw) or not raw[turn]:
+                        continue
                     gpqa_rows.append({"model": model, "query": query,
                                       "entropy": ev.get("entropy"),
                                       "turn": turn, "flipped": int(wrong),

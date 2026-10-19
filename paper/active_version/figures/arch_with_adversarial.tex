@@ -1,0 +1,176 @@
+% =====================================================================
+% Architecture diagram WITH the dynamic-adversary extension
+%   Static-pressure pipeline on the left (current TACL paper)
+%   Dynamic-adversary pipeline on the right (May-2026 extension)
+%   Both feed a unified comparison section at the bottom.
+%
+% Compile standalone:  pdflatex arch_with_adversarial.tex
+% Or include in main:  \input{figures/arch_with_adversarial}  (in a figure*)
+% =====================================================================
+\documentclass[tikz, border=8pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\footnotesize\sffamily,
+  node distance=5mm and 8mm,
+  every node/.style={align=center},
+  data/.style={
+    cylinder, shape border rotate=90, aspect=0.18,
+    draw=blue!55, fill=blue!8, thick,
+    minimum width=42mm, minimum height=10mm, inner sep=2pt,
+  },
+  proc/.style={
+    rectangle, rounded corners=2pt,
+    draw=orange!70, fill=orange!10, thick,
+    minimum width=42mm, minimum height=10mm, inner sep=3pt,
+  },
+  protocol/.style={
+    rectangle, rounded corners=2pt,
+    draw=orange!75, fill=orange!22, very thick,
+    minimum width=78mm, minimum height=32mm, inner sep=4pt,
+  },
+  advprotocol/.style={
+    rectangle, rounded corners=2pt,
+    draw=red!70, fill=red!12, very thick,
+    minimum width=78mm, minimum height=32mm, inner sep=4pt,
+  },
+  signal/.style={
+    rectangle, rounded corners=2pt,
+    draw=violet!70, fill=violet!10, thick,
+    minimum width=36mm, minimum height=10mm, inner sep=3pt,
+  },
+  judge/.style={
+    rectangle, rounded corners=2pt,
+    draw=red!55, fill=red!8, thick,
+    minimum width=36mm, minimum height=10mm, inner sep=3pt,
+  },
+  analysis/.style={
+    rectangle,
+    draw=green!55!black, fill=green!12, thick,
+    minimum width=42mm, minimum height=14mm, inner sep=3pt,
+  },
+  contrib/.style={
+    rectangle, dashed,
+    draw=gray!60, fill=gray!7,
+    minimum width=155mm, minimum height=14mm, inner sep=4pt,
+  },
+  trackhdr/.style={
+    rectangle, rounded corners=2pt,
+    fill=black!8, draw=black!30,
+    minimum width=78mm, minimum height=7mm,
+    font=\small\bfseries\sffamily,
+  },
+  arr/.style={-{Stealth[length=2.5mm]}, semithick, draw=black!75},
+  fanout/.style={-{Stealth[length=2.5mm]}, very thick, draw=orange!75!black},
+  advarr/.style={-{Stealth[length=2.5mm]}, very thick, draw=red!75!black},
+  shared/.style={-{Stealth[length=2.5mm]}, semithick, draw=gray!60, dashed},
+]
+
+% ===================================================================
+%  TRACK HEADERS
+% ===================================================================
+\node[trackhdr] (lefthdr)
+  {Static-Pressure Track \quad(current paper)};
+\node[trackhdr, right=22mm of lefthdr, fill=red!8, draw=red!40] (righthdr)
+  {Dynamic-Adversary Track \quad(extension)};
+
+% ===================================================================
+%  LEFT TRACK : static pressure
+% ===================================================================
+\node[data, below=4mm of lefthdr] (Ldata)
+  {Datasets $\cdot$ Models\\
+   {\scriptsize MMLU-Pro $\cdot$ GPQA-Diam $\cdot$ HLE
+   \quad $\cdot$\quad 5 GPT/Claude + Gemini}};
+\node[proc, below=of Ldata] (Lprep)
+  {Pre-pressure sampling $K{=}25$\\
+   {\scriptsize $H(q;\mathcal{M})$ + calibrated hardness $\hat{h}$ + entropy bins}};
+\node[protocol, below=of Lprep] (Lproto) {%
+  \textbf{Fixed-prompt protocol $T_1$--$T_6$}\\[1mm]
+  {\scriptsize $R{=}5$ dialogues, $K_{\text{turn}}{=}5$ polls $\Rightarrow$
+   25 samples/(q,t)}\\[2mm]
+  {\scriptsize
+   \begin{tabular}{@{}r@{\;}l@{\hskip 4mm}r@{\;}l@{}}
+   $T_1$ & Personal disagreement & $T_4$ & Expert authority \\
+   $T_2$ & Personal certainty    & $T_5$ & Personal accusation \\
+   $T_3$ & Social proof          & $T_6$ & Crowd consensus
+   \end{tabular}}};
+\node[signal, below=of Lproto, xshift=-19mm] (Lflip)
+  {flip $\cdot$ $B_t$\\\scriptsize per-turn signals};
+\node[signal, below=of Lproto, xshift=19mm] (Lcot)
+  {CoT $+$ calibrator $\mathcal{C}$\\\scriptsize $(\hat c_\ell,\hat\gamma_\ell)$};
+\node[analysis, below=of Lflip] (Lanalysis1)
+  {\textbf{Uncertainty $\times$ pressure}\\\scriptsize Mann-Whitney $U$,\\logistic $+$ mixed effects};
+\node[analysis, below=of Lcot] (Lanalysis2)
+  {\textbf{CoT trajectory}\\\scriptsize Bel.\,Ent.\,/ Conf.\,/ Gap};
+
+% ===================================================================
+%  RIGHT TRACK : dynamic adversary
+% ===================================================================
+\node[data, below=4mm of righthdr] (Rdata)
+  {Datasets $\cdot$ Target\\
+   {\scriptsize BullshitBench $\cdot$ GaslightBench $\cdot$ SYCON
+     $\cdot$ BrokenMath
+   \quad $\cdot$\quad Claude Sonnet 4.6}};
+\node[proc, below=of Rdata]
+  (Rprep) {Single-turn baseline\\
+   {\scriptsize GREEN / AMBER / RED rate per dataset at $T_0$}};
+\node[advprotocol, below=of Rprep] (Rproto) {%
+  \textbf{Free-form adversary protocol (Haiku $\to$ Sonnet)}\\[1mm]
+  {\scriptsize tailored per turn from full conv.\ history;\
+   up to 8 turns; early-stop on 2 consecutive REDs}\\[2mm]
+  {\scriptsize
+   \begin{tabular}{@{}l@{\hskip 4mm}l@{}}
+   Real-citation bridge  & Commitment trap      \\
+   Specificity trap      & Validation injection \\
+   Incremental agreement & Reframe as custom impl.
+   \end{tabular}\\[1mm]
+   \textit{(emergent tactics, not prescribed)}}};
+\node[judge, below=of Rproto] (Rjudge)
+  {Judge: GPT-5 Mini\\
+   {\scriptsize GREEN / AMBER / RED per turn (full conv.\ history)}};
+\node[analysis, below=of Rjudge] (Ranalysis)
+  {\textbf{Adversarial metrics}\\
+   {\scriptsize flip $\cdot$ full-capitulation $\cdot$ recovery\\
+                per-turn break rate $\cdot$ specificity trap}};
+
+% ===================================================================
+%  ARROWS
+% ===================================================================
+% Left track flow
+\draw[arr] (Ldata)  -- (Lprep);
+\draw[arr] (Lprep)  -- (Lproto);
+\draw[fanout] (Lproto.south) -- ++(0,-3mm) -| (Lflip.north);
+\draw[fanout] (Lproto.south) -- ++(0,-3mm) -| (Lcot.north);
+\draw[arr] (Lflip) -- (Lanalysis1);
+\draw[arr] (Lcot)  -- (Lanalysis2);
+
+% Right track flow
+\draw[arr] (Rdata)  -- (Rprep);
+\draw[arr] (Rprep)  -- (Rproto);
+\draw[advarr] (Rproto) -- (Rjudge);
+\draw[arr] (Rjudge) -- (Ranalysis);
+
+% ===================================================================
+%  UNIFIED CONTRIBUTION (bottom)
+% ===================================================================
+\node[contrib, below=8mm of $(Lanalysis1)!0.5!(Ranalysis)$] (contrib) {%
+  \textbf{Joint contribution:}
+  static-pressure analysis isolates \emph{uncertainty} as the
+  pre-pressure predictor of capitulation (left);
+  dynamic-adversary analysis isolates \emph{rhetorical adaptivity} as
+  the first-turn vulnerability (right).
+  \emph{Resister / Capitulator / Fragmenter / Hedger} taxonomy unifies both.
+};
+
+\draw[arr] (Lanalysis1.south) -- ([yshift=2mm]contrib.north -| Lanalysis1.south);
+\draw[arr] (Lanalysis2.south) -- ([yshift=2mm]contrib.north -| Lanalysis2.south);
+\draw[arr] (Ranalysis.south)  -- ([yshift=2mm]contrib.north -| Ranalysis.south);
+
+% Conceptual link between the two tracks (target model overlap)
+\draw[shared] (Lprep.east) to[bend left=10] node[above, font=\scriptsize]
+   {{\itshape same target}\\{\itshape family}} (Rprep.west);
+
+\end{tikzpicture}
+\end{document}

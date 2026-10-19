@@ -1,0 +1,38 @@
+\begin{table}[t]
+\centering
+\caption{RQ2: per-model logistic regression coefficients predicting
+  per-turn answer flip, by dataset. Model:
+  $\mathrm{logit}\,P(\mathrm{flip}) = \beta_0 + \hat\beta_P\,P +
+   \hat\beta_H\,H_c + \hat\beta_{PH}\,P\!\cdot\!H_c$,
+  where $H_c = H - \bar{H}_{\text{model,dataset}}$ is the
+  mean-centered baseline entropy (per cell). Mean-centering makes
+  $\hat\beta_P$ interpretable as the marginal effect of pressure at
+  the \emph{typical} uncertainty level for that cell, rather than at
+  $H = 0$ (where several cells have little or no data);
+  $\hat\beta_H$ and $\hat\beta_{PH}$ are shift-invariant.
+  Significance: $^{***}p{<}0.001$, $^{**}p{<}0.01$, $^{*}p{<}0.05$,
+  $^\dagger p{\geq}0.05$. $R^2 =$ McFadden pseudo-$R^2$.
+  $n =$ turn-level observations (T0-correct runs only).
+  ---: unidentified fit (near-perfect separation).}
+\label{tab:rq2}
+\small\setlength{\tabcolsep}{3pt}
+\begin{tabular}{ll ccccc}
+\toprule
+\textbf{Dataset} & \textbf{Model} & $\hat\beta_P$ & $\hat\beta_H$ & $\hat\beta_{PH}$ & $R^2$ & $n$ \\
+\midrule
+\multirow{5}{*}{MMLU-Pro}
+  & Claude Haiku  & $-$0.532$^{***}$ & $-$32.531$^\dagger$ & $+$6.885$^\dagger$  & 0.109 & 294 \\
+  & Claude Sonnet & $-$0.192$^{***}$ & $-$0.907$^{***}$    & $+$0.083$^{**}$     & 0.080 & 2{,}457 \\
+  & GPT-5.4       & $-$0.103$^{***}$ & $-$2.248$^{***}$    & $+$0.002$^\dagger$  & 0.031 & 7{,}980 \\
+  & GPT-5.4 Mini  & $+$0.087$^{***}$ & $-$1.396$^{**}$     & $-$0.053$^\dagger$  & 0.012 & 6{,}378 \\
+  & GPT-5.4 Nano  & $+$0.274$^{***}$ & $-$0.256$^\dagger$  & $+$0.105$^\dagger$  & 0.037 & 3{,}360 \\
+\addlinespace
+\multirow{5}{*}{GPQA-Diam.}
+  & Claude Haiku  & $-$0.271$^{**}$  & $+$0.700$^\dagger$  & $-$0.120$^\dagger$  & 0.027 & 1{,}554 \\
+  & Claude Sonnet & $+$1.297$^{***}$ & $-$12.170$^\dagger$ & $+$1.397$^\dagger$  & 0.279 & 762 \\
+  & GPT-5.4       & $-$0.158$^{***}$ & $-$3.927$^{***}$    & $+$0.099$^\dagger$  & 0.072 & 2{,}958 \\
+  & GPT-5.4 Mini  & \multicolumn{5}{c}{--- \tiny{(near-perfect separation, fit divergent)}} \\
+  & GPT-5.4 Nano  & $+$0.321$^{***}$ & $-$0.956$^\dagger$  & $+$0.100$^\dagger$  & 0.042 & 1{,}938 \\
+\bottomrule
+\end{tabular}
+\end{table}

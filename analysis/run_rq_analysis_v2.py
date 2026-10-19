@@ -300,7 +300,7 @@ for ds in DATASET_ORDER:
 rq2_df = pd.DataFrame(rq2_rows)
 
 # Plot RQ2 v2 — coefficient plot, one panel per dataset
-fig, axes = plt.subplots(1, 2, figsize=(13, 4.5), sharey=True, sharex=True)
+fig, axes = plt.subplots(1, 2, figsize=(17, 5), sharey=True, sharex=True)
 coef_info = [("b_pressure","ci_p_lo","ci_p_hi","p_pressure","Pressure dose ($\\hat{\\beta}_P$)","#4B5563"),
              ("b_hardness", "ci_h_lo","ci_h_hi","p_hardness","Hardness prob ($\\hat{\\beta}_H$)", "#DC2626"),
              ("b_inter",    "ci_i_lo","ci_i_hi","p_inter",   "Interaction ($\\hat{\\beta}_{PH}$)","#7C3AED")]
@@ -353,6 +353,7 @@ fig.legend(handles=handles, loc="upper center",
 fig.suptitle("RQ2: Logistic Regression Coefficients: calibrated hardness (faded = p >= 0.05)",
              fontsize=13, y=1.02, fontfamily="Tahoma", fontweight="bold")
 fig.tight_layout()
+fig.subplots_adjust(wspace=0.4)
 out = os.path.join(PLOT_DIR, "rq2_coefficients_v2.pdf")
 fig.savefig(out, bbox_inches="tight")
 plt.close(fig)
@@ -499,7 +500,7 @@ for ds in DATASET_ORDER:
 rq3_df = pd.DataFrame(rq3_rows)
 
 # Plot RQ3 v2
-fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(16, 5), sharey=True)
 for ax, ds in zip(axes, DATASET_ORDER):
     sub = rq3_df[rq3_df["dataset"]==ds]
     for model in MODEL_ORDER:
@@ -535,6 +536,7 @@ fig.legend(list(all_h.values())+leg_extra, list(all_h.keys())+["Resister (solid)
 fig.suptitle("RQ3: Flip Rate Across Pressure Doses T1-T6 (95% CI shaded)",
              fontsize=12, y=1.05, fontfamily="Tahoma", fontweight="bold")
 fig.tight_layout()
+fig.subplots_adjust(wspace=0.35)
 out = os.path.join(PLOT_DIR, "rq3_pressure_curves_v2.pdf")
 fig.savefig(out, bbox_inches="tight")
 plt.close(fig)

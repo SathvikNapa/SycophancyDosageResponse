@@ -1,0 +1,22 @@
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Dataset} & \textbf{Model} & $\hat\beta_P$ & $\hat\beta_H$ & $\hat\beta_{PH}$ & \textbf{Trajectory} \\
+\midrule
+MMLU-Pro & Claude Haiku & -1.706*** & -1.578 & +0.290 & resister \\
+MMLU-Pro & Claude Sonnet & -1.161*** & -0.512 & -0.117 & resister \\
+MMLU-Pro & GPT-5.4 & -0.156*** & -1.319* & +0.216 & capitulator \\
+MMLU-Pro & GPT-5.4 Mini & -0.309*** & -0.781 & +0.163 & capitulator \\
+MMLU-Pro & GPT-5.4 Nano & -0.490*** & -1.428 & +1.085 & capitulator \\
+GPQA-Diamond & Claude Haiku$^\dagger$ & -- & -- & -- & flat/n.s. \\
+GPQA-Diamond & Claude Sonnet & -0.872*** & -0.330 & -0.315 & capitulator \\
+GPQA-Diamond & GPT-5.4 & -0.226*** & -0.680 & +0.135 & capitulator \\
+GPQA-Diamond & GPT-5.4 Mini & -0.458*** & -1.679 & +0.190 & capitulator \\
+GPQA-Diamond & GPT-5.4 Nano & -0.904*** & +2.271 & -0.370 & capitulator \\
+HLE & Claude Haiku & -- & -- & -- & flat/n.s. \\
+HLE & Claude Sonnet$^\dagger$ & -- & -- & -- & flat/n.s. \\
+HLE & GPT-5.4 & -0.466* & -0.120 & -0.260 & capitulator \\
+HLE & GPT-5.4 Mini$^\dagger$ & +9.828 & -81.056 & -81.216 & capitulator \\
+HLE & GPT-5.4 Nano & -0.785* & +0.583 & -0.184 & capitulator \\
+HLE & Gemini 3.5 Flash & -0.375*** & -2.593*** & +0.611* & capitulator \\
+\bottomrule
+\end{tabular}

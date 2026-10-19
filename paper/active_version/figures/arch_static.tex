@@ -1,0 +1,141 @@
+% =====================================================================
+% Architecture diagram WITHOUT the adversarial experiments
+%   Use this if the paper stays in static-pressure scope (current TACL).
+%
+% Compile standalone:  pdflatex arch_static.tex
+% Or include in main:  \input{figures/arch_static}  (inside a figure env)
+% =====================================================================
+\documentclass[tikz, border=8pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\footnotesize\sffamily,
+  node distance=6mm and 10mm,
+  every node/.style={align=center},
+  data/.style={
+    cylinder, shape border rotate=90, aspect=0.18,
+    draw=blue!55, fill=blue!8, thick,
+    minimum width=30mm, minimum height=10mm, inner sep=2pt,
+  },
+  proc/.style={
+    rectangle, rounded corners=2pt,
+    draw=orange!70, fill=orange!10, thick,
+    minimum width=34mm, minimum height=10mm, inner sep=3pt,
+  },
+  protocol/.style={
+    rectangle, rounded corners=2pt,
+    draw=orange!75, fill=orange!22, very thick,
+    minimum width=110mm, minimum height=32mm, inner sep=5pt,
+  },
+  signal/.style={
+    rectangle, rounded corners=2pt,
+    draw=violet!70, fill=violet!10, thick,
+    minimum width=28mm, minimum height=10mm, inner sep=3pt,
+  },
+  analysis/.style={
+    rectangle,
+    draw=green!55!black, fill=green!12, thick,
+    minimum width=34mm, minimum height=12mm, inner sep=3pt,
+  },
+  out/.style={
+    rectangle, dashed,
+    draw=gray, fill=gray!6,
+    minimum width=110mm, minimum height=11mm, inner sep=3pt,
+  },
+  arr/.style={-{Stealth[length=2.5mm]}, semithick, draw=black!75},
+  fanout/.style={-{Stealth[length=2.5mm]}, very thick, draw=orange!75!black},
+]
+
+% ---------- INPUTS ----------
+\node[data] (datasets)
+  {Datasets\\{\scriptsize MMLU-Pro $\cdot$ GPQA-Diamond $\cdot$ HLE}};
+\node[data, right=18mm of datasets] (models)
+  {Target models\\{\scriptsize 5 GPT/Claude (all) + Gemini (HLE only)}};
+
+% ---------- STAGE A: pre-pressure ----------
+\node[proc, below=8mm of datasets, xshift=23mm] (sampling)
+  {Pre-pressure sampling\\$K{=}25$ at $T_0$ (temp.\ 1)};
+\node[signal, below=of sampling] (H)
+  {$H(q;\mathcal{M})$\\\scriptsize Shannon entropy over $K$ samples};
+
+\node[proc, below=8mm of H, xshift=-32mm] (hardness)
+  {Isotonic regression\\$\hat{h}(q;\mathcal{M},\mathcal{D}) \in [0,1]$};
+\node[proc, below=8mm of H, xshift=32mm] (bins)
+  {Quantile entropy bins\\eligibility filter ($\geq 2$ bins)};
+
+% Anchor coordinate for the protocol block: 12mm below the lower edge
+% of the (hardness, bins) row, horizontally centered on H.
+\coordinate (prep_row_bottom) at ($(hardness.south)!0.5!(bins.south)$);
+
+% ---------- STAGE B: pressure protocol ----------
+\node[protocol, below=12mm of prep_row_bottom] (pressure) {%
+  \textbf{Multi-turn pressure protocol $T_1$--$T_6$}\\[1mm]
+  {\scriptsize fixed escalation from low- to high-authority pressure;\
+   $R{=}5$ dialogues, $K_{\text{turn}}{=}5$ re-polls $\Rightarrow$
+   25 samples per (question, turn) cell}\\[2mm]
+  {\scriptsize
+   \begin{tabular}{@{}r@{\;}l@{\hskip 8mm}r@{\;}l@{}}
+   $T_1$ & Personal disagreement & $T_4$ & Expert authority \\
+   $T_2$ & Personal certainty    & $T_5$ & Personal accusation \\
+   $T_3$ & Social proof          & $T_6$ & Crowd consensus
+   \end{tabular}}};
+
+% ---------- STAGE C: per-turn signals ----------
+\node[signal, below=of pressure, xshift=-40mm] (flip)
+  {flip event\\\scriptsize turn-of-flip (ToF)};
+\node[signal, below=of pressure] (B)
+  {$B_t(q;\mathcal{M})$\\\scriptsize per-turn belief entropy};
+\node[signal, below=of pressure, xshift=40mm] (cot)
+  {free-form CoT + calibrator $\mathcal{C}$\\
+   {\scriptsize $(\hat{c}_\ell,\hat{\gamma}_\ell)$ per reasoning step}};
+
+% ---------- STAGE D: analyses ----------
+\node[analysis, below=of flip] (rq1)
+  {\textbf{Uncertainty effect}\\certain vs uncertain\\\scriptsize Mann-Whitney $U$};
+\node[analysis, below=of B] (rq2)
+  {\textbf{Pressure $\times$ uncertainty}\\\scriptsize logistic regr.\
+   $\hat\beta_P,\hat\beta_H,\hat\beta_{PH}$\\+ mixed effects};
+\node[analysis, below=of cot] (rq4)
+  {\textbf{CoT trajectory}\\\scriptsize Bel.\,Ent.\,/ Conf.\,/ Gap};
+
+% ---------- OUTPUTS ----------
+\node[out, below=8mm of rq2] (out)
+  {\textbf{Outputs:} Tables $\cdot$ Figures $\cdot$
+   \textbf{Resister} / \textbf{Capitulator} / \textbf{Fragmenter} taxonomy};
+
+% ---------- ARROWS ----------
+\draw[arr] (datasets) |- ([yshift=-4mm]datasets.south) -| (sampling);
+\draw[arr] (models)   |- ([yshift=-4mm]models.south)   -| (sampling);
+\draw[arr] (sampling) -- (H);
+\draw[arr] (H.south) -- ++(0,-2mm) -| (hardness.north);
+\draw[arr] (H.south) -- ++(0,-2mm) -| (bins.north);
+\draw[arr] (hardness) |- ([yshift=2mm]pressure.north);
+\draw[arr] (bins)     |- ([yshift=2mm]pressure.north);
+\draw[fanout] (pressure.south) -- ++(0,-3mm) -| (flip.north);
+\draw[fanout] (pressure.south) -- ++(0,-3mm) -- (B.north);
+\draw[fanout] (pressure.south) -- ++(0,-3mm) -| (cot.north);
+\draw[arr] (flip) -- (rq1);
+\draw[arr] (B)    -- (rq2);
+\draw[arr] (cot)  -- (rq4);
+\draw[arr] (rq1) -- ([xshift=-30mm]out.north);
+\draw[arr] (rq2) -- (out.north);
+\draw[arr] (rq4) -- ([xshift=30mm]out.north);
+
+% ---------- STAGE LABELS (left margin) ----------
+\begin{scope}[on background layer]
+  \node[anchor=west, font=\scriptsize\bfseries\itshape, text=gray!70!black]
+    at ([xshift=-8mm]datasets.west|-datasets) {INPUTS};
+  \node[anchor=west, font=\scriptsize\bfseries\itshape, text=gray!70!black]
+    at ([xshift=-8mm]datasets.west|-H) {PRE-PRESSURE};
+  \node[anchor=west, font=\scriptsize\bfseries\itshape, text=gray!70!black]
+    at ([xshift=-8mm]datasets.west|-pressure) {PROTOCOL};
+  \node[anchor=west, font=\scriptsize\bfseries\itshape, text=gray!70!black]
+    at ([xshift=-8mm]datasets.west|-B) {SIGNALS};
+  \node[anchor=west, font=\scriptsize\bfseries\itshape, text=gray!70!black]
+    at ([xshift=-8mm]datasets.west|-rq2) {ANALYSES};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}

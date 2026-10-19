@@ -210,19 +210,19 @@
 
     <ul class="findings">
       <li><b>RQ1: uncertainty moderates flip rate.</b> Questions that induce disagreement across repeated sampling flip at roughly twice the rate of questions the model answers unanimously, on average across our MMLU-Pro cells.</li>
-      <li><b>RQ2: a small, model-specific interaction.</b> Pressure &times; uncertainty interacts significantly for Claude Sonnet individually, but the pooled, cross-model estimate does not clear conventional significance on its own; a random-effects meta-analysis (below) recovers a significant pooled effect.</li>
-      <li><b>RQ3: models split into resisters and capitulators</b>, and the split is consistent within a model across both benchmarks, not just noise in one dataset.</li>
+      <li><b>RQ2: the pressure &times; uncertainty interaction does not survive correction.</b> It crosses the uncorrected p&lt;0.05 threshold in only two of 22 estimable (model, dataset, parameterization) cells, and neither survives Holm correction; the three pooled per-benchmark estimates (below) also don't exclude zero (p = 0.073, 0.864, 0.102).</li>
+      <li><b>RQ3: models split into resisters and capitulators, but the split is benchmark-dependent.</b> Most models keep the same label across MMLU-Pro and GPQA-Diamond, but Claude Sonnet flips from resister to capitulator between the two.</li>
       <li><b>RQ4: confidence does not track accuracy.</b> Stated confidence stays roughly flat under pressure while accuracy drops, so the gap between what a model says and what's true widens turn over turn.</li>
     </ul>
 
     <figure>
       <img src="assets/figures/rq2_coefs.png" alt="RQ2 logistic regression coefficients per model, MMLU-Pro and GPQA-Diamond">
-      <figcaption><b>Per-model regression coefficients</b> for pressure dose, calibrated hardness, and their interaction. Faded markers are not individually significant (p &ge; 0.05); most models' interaction term is faded, and Claude Sonnet is the exception on both benchmarks.</figcaption>
+      <figcaption><b>Per-model regression coefficients</b> for pressure dose, calibrated hardness, and their interaction. Faded markers are not individually significant (p &ge; 0.05); every model's interaction term is faded in the main (entropy-based) specification, including Claude Sonnet.</figcaption>
     </figure>
 
     <figure>
       <img src="assets/figures/rq3_combined.png" alt="Flip rate across pressure turns T1 to T6 for five models on MMLU-Pro and GPQA-Diamond, with resisters shown as solid lines and capitulators as dashed lines">
-      <figcaption><b>Flip rate across pressure turns T1&ndash;T6.</b> Dashed = capitulator, solid = resister, shading = 95% CI. The split holds across both benchmarks: GPT-5.4 Nano and GPT-5.4 Mini capitulate on MMLU-Pro; on GPQA-Diamond every model resists (rates fall or hold), including the two MMLU-Pro capitulators.</figcaption>
+      <figcaption><b>Flip rate across pressure turns T1&ndash;T6.</b> Dashed = capitulator, solid = resister, shading = 95% CI. GPT-5.4 Nano and GPT-5.4 Mini capitulate on both benchmarks; Claude Haiku and GPT-5.4 resist on both; Claude Sonnet resists on MMLU-Pro but capitulates on GPQA-Diamond, so the resister/capitulator label is a property of the (model, benchmark) pair rather than a fixed model trait.</figcaption>
     </figure>
 
     <figure>
@@ -237,7 +237,7 @@
 
     <figure>
       <img src="assets/figures/interaction_heterogeneity.png" alt="Forest plot of per-model pressure by uncertainty interaction coefficients with a pooled random-effects estimate">
-      <figcaption><b>Random-effects meta-analysis of the pressure &times; uncertainty interaction</b> across models. Individual per-model estimates are noisy and inconsistent in sign, but the pooled random-effects estimate is positive and significant (low heterogeneity, I&sup2; small), even though no single model reaches significance on its own.</figcaption>
+      <figcaption><b>Random-effects meta-analysis of the pressure &times; uncertainty interaction</b> across models, one pooled estimate per benchmark. Individual per-model estimates are noisy and inconsistent in sign, and none of the three pooled estimates exclude zero (p = 0.073 MMLU-Pro, 0.864 GPQA-Diamond, 0.102 HLE): we read RQ2 as inconclusive rather than as a positive finding.</figcaption>
     </figure>
   </div>
 </section>

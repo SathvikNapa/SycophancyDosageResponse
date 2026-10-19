@@ -1,0 +1,183 @@
+\documentclass[11pt]{article}
+
+% ---------------------------------------------------------------------
+% Switch to [final] for the camera-ready version (after acceptance),
+% or [preprint] for a non-anonymous arXiv-style version with page numbers.
+% Default here is [review] for anonymous submission.
+% ---------------------------------------------------------------------
+\usepackage[review]{acl}
+%\usepackage{acl}            % <- final (camera-ready)
+%\usepackage[preprint]{acl}  % <- de-anonymized preprint
+
+\usepackage{times}
+\usepackage{latexsym}
+
+% Encoding
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Typography
+\usepackage{microtype}
+%\usepackage{inconsolata}  % optional typewriter font; omitted (package unavailable in this environment)
+\usepackage{enumitem}
+
+% Math
+\usepackage{amsfonts}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{nicefrac}
+
+% Tables and figures
+\usepackage{graphicx}
+\usepackage{booktabs}   % \toprule, \midrule, \bottomrule
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tikz}       % required by figures/fig1_key_result.tex
+\usetikzlibrary{positioning, arrows.meta, calc, decorations.pathreplacing}
+\usepackage{tabularx}
+\usepackage{threeparttable}
+\usepackage{adjustbox}
+\usepackage{longtable}
+\usepackage{makecell}
+\newcommand{\xhdr}[1]{\vspace{0.5em}\noindent\textbf{#1.}}
+
+\def\equationautorefname~#1\null{(#1)\null}
+\def\itemautorefname~#1\null{(#1)\null}
+\def\sectionautorefname~#1\null{\S#1\null}
+\def\subsectionautorefname~#1\null{\S#1\null}
+\def\subsubsectionautorefname~#1\null{\S#1\null}
+
+% Colors / inline review notes (currently unused, kept for revision convenience)
+\usepackage{xcolor}
+\usepackage[disable]{todonotes}
+\newcommand{\note}[4][]{\todo[author=#2,color=#3,size=\scriptsize,#1]{#4}}
+\newcommand{\sophia}[2][]{\note[#1]{Sophia}{blue!40}{#2}}
+\newcommand{\Sophia}[2][]{\sophia[inline,#1]{#2}}
+\newcommand{\sathvik}[2][]{\note[#1]{Sathvik}{cyan!40}{#2}}
+\newcommand{\Sathvik}[2][]{\sathvik[inline,#1]{#2}}
+
+% NOTE: acl.sty already \RequirePackage{hyperref} (with breaklinks) and
+% \RequirePackage{natbib}, and sets \bibliographystyle{acl_natbib}
+% automatically. Do not load hyperref again here.
+\usepackage{url}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{promptbox}[1]{
+  colback=yellow!10,
+  colframe=black!60,
+  colbacktitle=yellow!35,
+  coltitle=black,
+  fonttitle=\bfseries,
+  title=#1,
+  boxrule=0.4pt,
+  arc=1pt,
+  left=4pt, right=4pt, top=3pt, bottom=3pt,
+  fontupper=\tiny\ttfamily,
+  breakable
+}
+
+\newtcolorbox{examplebox}{
+  colback=blue!10,
+  colframe=black!60,
+  arc=1pt,
+  left=4pt,
+  right=4pt,
+  top=3pt,
+  bottom=3pt,
+  fontupper=\tiny\ttfamily,
+}
+
+% Tighten float spacing slightly (typographic only, no content change)
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+% =====================================================================
+%  INTERNAL REVIEWER-CHECKLIST MACHINERY -- NOT FOR SUBMISSION.
+%  Flip \showreviewtrue -> \showreviewfalse (or delete this block and
+%  the guarded \input near \end{document}) before the camera-ready.
+% =====================================================================
+\newif\ifshowreview
+\showreviewtrue   % <-- set to \showreviewfalse to hide the checklist
+\makeatletter
+\newcounter{rev@total}\newcounter{rev@fixed}
+\newcommand{\done}[1]{\expandafter\gdef\csname rev@done@#1\endcsname{}}
+\definecolor{openred}{RGB}{200,30,30}
+\definecolor{fixred}{RGB}{140,20,20}
+\definecolor{vfygreen}{RGB}{20,110,50}
+\newcommand{\issue}[3]{% #1 = ID, #2 = issue, #3 = proposed fix
+  \stepcounter{rev@total}%
+  \ifcsname rev@done@#1\endcsname
+    \stepcounter{rev@fixed}%
+    \item[{\color{gray}$\boxtimes$}]%
+      {\color{gray}\sout{\textbf{[#1]} #2}\par
+       \emph{Proposed fix:} \sout{#3}}%
+  \else
+    \item[{\color{openred}$\square$}]%
+      {\color{openred}\textbf{[#1]} #2}\par
+      {\color{fixred}\emph{Proposed fix:} #3}%
+  \fi}
+\newcommand{\progress}{\noindent\fbox{\textbf{Progress: \arabic{rev@fixed} of \arabic{rev@total} issues addressed.}}}
+\newcommand{\vfy}[2]{\par\smallskip{\small\color{vfygreen}$\checkmark$~\textbf{Verified (#1):} #2}}
+\makeatother
+\newlist{issuelist}{itemize}{1}
+\setlist[issuelist]{leftmargin=2.5em,itemsep=0.6em,parsep=0pt}
+% ---- Mark addressed issues here, e.g. \done{A1}\done{D3} ----
+
+\title{When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation}
+
+% Author block is hidden automatically in [review] mode (acl.sty prints
+% "Anonymous ACL submission" instead). Fill in / verify before using
+% [final] or [preprint].
+\author{
+  Sathvik Napa \\
+  Center for Language and Speech Processing \\
+  Johns Hopkins University \\
+  \texttt{snapa1@jhu.edu} \\\And
+  Sophia Hager \\
+  Johns Hopkins University \\\And
+  Sri Vardhamanan \\
+  Stanford University \\\And
+  Nicholas Andrews \\
+  Department of Computer Science \\
+  Johns Hopkins University \\
+}
+
+\begin{document}
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/architecture_diagram}
+\input{sections/background}
+\input{sections/methods}
+% \input{sections/experiments}
+% \input{sections/results}
+\input{sections/experiments_results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+% NAACL/ACL requires an unnumbered "Limitations" section.
+\input{sections/limitations}
+\input{sections/statements}
+
+% Internal reviewer checklist (rendered only when \showreviewtrue; remove before submission).
+\ifshowreview
+% \input{sections/review_checklist_body}
+\fi
+
+% Acknowledgements, once de-anonymized:
+% \section*{Acknowledgments}
+% \input{sections/acknowledgements}
+
+\bibliography{bib}
+% acl.sty already sets \bibliographystyle{acl_natbib}; do not override.
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

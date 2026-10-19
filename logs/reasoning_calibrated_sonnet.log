@@ -1,0 +1,21 @@
+Loading baseline metadata from experiment_out/ClaudeSonnet/gpqa_diamond/base_experiment_metadata.pkl...
+Loading embedding model 'text-embedding-3-small'...
+  Encoder ready.
+
+Binning 198 items into 5 bins...
+Binning by calibrated hardness probability (loaded from calibration.pkl).
+  WARNING: requested 5 bins but only 2 distinct quantile edges exist in this data (common when many samples share the same entropy value). Proceeding with 2 bins.
+
+Bin    Calibrated Prob Range      Items    Mean Uncertainty
+----------------------------------------------------------
+0      0.247 to 0.990          119      0.402
+1      0.990 to 1.000          79       1.000
+--extend: 79 questions already have reasoning_calibrated data in experiment_out/ClaudeSonnet/gpqa_diamond/reasoning_calibrated_bin, will skip those.
+
+============================================================
+Calibrated reasoning bin 0 — 70 items, 5 runs each
+  Reasoning model : ClaudeSonnet
+  Calibrator model: GPT5_4Mini
+============================================================
+calibrated reasoning:   0%|          | 0/70 [00:00<?, ?it/s]/Users/snapaug1/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

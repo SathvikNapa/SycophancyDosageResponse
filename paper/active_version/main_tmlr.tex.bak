@@ -1,0 +1,146 @@
+\documentclass[10pt]{article} % For LaTeX2e
+\usepackage{tmlr}
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{tmlr}
+% To de-anonymize and remove mentions to TMLR (e.g., for posting to arXiv), use:
+%\usepackage[preprint]{tmlr}
+
+% Encoding
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Typography
+\usepackage{microtype}
+\usepackage{enumitem}
+
+% Math
+\usepackage{amsfonts}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{nicefrac}
+
+% Tables and figures
+\usepackage{graphicx}
+\usepackage{booktabs}   % \toprule, \midrule, \bottomrule
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tikz}       % required by figures/fig1_key_result.tex
+\usetikzlibrary{positioning, arrows.meta, calc, decorations.pathreplacing}
+\usepackage{tabularx}
+\usepackage{threeparttable}
+\usepackage{adjustbox}
+\usepackage{longtable}
+\newcommand{\xhdr}[1]{\vspace{0.5em}\noindent\textbf{#1.}}
+
+\def\equationautorefname~#1\null{(#1)\null}
+\def\itemautorefname~#1\null{(#1)\null}
+\def\sectionautorefname~#1\null{\S#1\null}
+\def\subsectionautorefname~#1\null{\S#1\null}
+\def\subsubsectionautorefname~#1\null{\S#1\null}
+
+% Colors / inline review notes (currently unused, kept for revision convenience)
+\usepackage{xcolor}
+\usepackage[disable]{todonotes}
+\newcommand{\note}[4][]{\todo[author=#2,color=#3,size=\scriptsize,#1]{#4}}
+\newcommand{\sophia}[2][]{\note[#1]{Sophia}{blue!40}{#2}}
+\newcommand{\Sophia}[2][]{\sophia[inline,#1]{#2}}
+\newcommand{\sathvik}[2][]{\note[#1]{Sathvik}{cyan!40}{#2}}
+\newcommand{\Sathvik}[2][]{\sathvik[inline,#1]{#2}}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+% =====================================================================
+%  INTERNAL REVIEWER-CHECKLIST MACHINERY -- NOT FOR SUBMISSION.
+%  Flip \showreviewtrue -> \showreviewfalse (or delete this block and
+%  the guarded \input near \end{document}) before the camera-ready.
+%  All required packages (xcolor, ulem, enumitem, amssymb) are already
+%  loaded above.
+% =====================================================================
+\newif\ifshowreview
+\showreviewtrue   % <-- set to \showreviewfalse to hide the checklist
+\makeatletter
+\newcounter{rev@total}\newcounter{rev@fixed}
+\newcommand{\done}[1]{\expandafter\gdef\csname rev@done@#1\endcsname{}}
+\definecolor{openred}{RGB}{200,30,30}
+\definecolor{fixred}{RGB}{140,20,20}
+\definecolor{vfygreen}{RGB}{20,110,50}
+\newcommand{\issue}[3]{% #1 = ID, #2 = issue, #3 = proposed fix
+  \stepcounter{rev@total}%
+  \ifcsname rev@done@#1\endcsname
+    \stepcounter{rev@fixed}%
+    \item[{\color{gray}$\boxtimes$}]%
+      {\color{gray}\sout{\textbf{[#1]} #2}\par
+       \emph{Proposed fix:} \sout{#3}}%
+  \else
+    \item[{\color{openred}$\square$}]%
+      {\color{openred}\textbf{[#1]} #2}\par
+      {\color{fixred}\emph{Proposed fix:} #3}%
+  \fi}
+\newcommand{\progress}{\noindent\fbox{\textbf{Progress: \arabic{rev@fixed} of \arabic{rev@total} issues addressed.}}}
+\newcommand{\vfy}[2]{\par\smallskip{\small\color{vfygreen}$\checkmark$~\textbf{Verified (#1):} #2}}
+\makeatother
+\newlist{issuelist}{itemize}{1}
+\setlist[issuelist]{leftmargin=2.5em,itemsep=0.6em,parsep=0pt}
+% ---- Mark addressed issues here, e.g. \done{A1}\done{D3} ----
+
+\title{When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation}
+
+% Authors are hidden automatically by the tmlr package unless the
+% [accepted] or [preprint] option is passed above. Fill in emails
+% for co-authors before using the [accepted]/[preprint] options.
+\author{\name Sathvik Napa \email snapa1@jhu.edu \\
+      \addr Center for Language and Speech Processing \\
+      Johns Hopkins University \\
+      Baltimore, MD 21218
+      \AND
+      \name Sophia Hager \\
+      \addr Johns Hopkins University \\
+      Baltimore, MD 21218
+      \AND
+      \name Sri Vardhamanan \\
+      \addr Stanford University
+      \AND
+      \name Nicholas Andrews \\
+      \addr Department of Computer Science \\
+      Johns Hopkins University \\
+      Baltimore, MD 21218
+}
+
+% Camera-ready-only fields (uncomment and fill in once accepted):
+% \def\month{MM}
+% \def\year{YYYY}
+% \def\openreview{\url{https://openreview.net/forum?id=XXXX}}
+
+\begin{document}
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/architecture_diagram}
+\input{sections/background}
+\input{sections/methods}
+% \input{sections/experiments}
+% \input{sections/results}
+\input{sections/experiments_results}
+\input{sections/discussion}
+\input{sections/conclusion}
+\input{sections/limitations}
+\input{sections/statements}
+% Internal reviewer checklist (rendered only when \showreviewtrue; remove before submission).
+\ifshowreview
+% \input{sections/review_checklist_body}
+\fi
+
+% Acknowledgements, once de-anonymized (see TMLR camera-ready policy):
+% \subsubsection*{Acknowledgments}
+% \input{sections/acknowledgements}
+
+\bibliography{bib}
+\bibliographystyle{tmlr}
+
+\input{sections/appendix}
+
+\end{document}
