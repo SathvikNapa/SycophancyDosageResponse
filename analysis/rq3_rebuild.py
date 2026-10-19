@@ -121,6 +121,7 @@ def build_figure(res):
     fig.tight_layout()
     path = "paper/active_version/sections/fig/rq3_combined.pdf"
     fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path.replace(".pdf", ".png"), dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {path}")
 
