@@ -1,4 +1,4 @@
-# When Models Fold: Uncertainty as a Predictor of Sycophantic Capitulation
+# When Models Fold: Does Uncertainty Predict Sycophantic Capitulation?
 
 Code and analysis for a study of LLM sycophancy under adversarial social
 pressure (disagreement, false certainty, social proof, expert authority,
